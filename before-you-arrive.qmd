@@ -15,7 +15,18 @@ These materials help participants from both communities build enough background 
 
 These readings introduce infectious disease modeling concepts used throughout the workshop.
 
-*Papers and chapters will be listed here*
+```{=html}
+<div class="doc-cards">
+  <a href="assets/reading-idm-intro.pdf" class="doc-card" target="_blank">
+    <img src="assets/thumbnails/reading-idm-intro.png" alt="IDM intro reading" onerror="this.src='assets/thumbnails/placeholder.svg'">
+    <div class="doc-card-label">Author et al. (Year)<br>Short title</div>
+  </a>
+</div>
+```
+
+<!-- To add a paper: copy one <a>…</a> block above, update the href to your file path,
+     src to your thumbnail image, and the label text. -->
+
 
 **Key concepts to be familiar with:**
 
@@ -30,7 +41,15 @@ These readings introduce infectious disease modeling concepts used throughout th
 
 These readings introduce survival analysis concepts and methods used throughout the workshop.
 
-*Papers and chapters will be listed here*
+```{=html}
+<div class="doc-cards">
+  <a href="assets/reading-sa-intro.pdf" class="doc-card" target="_blank">
+    <img src="assets/thumbnails/reading-sa-intro.png" alt="SA intro reading" onerror="this.src='assets/thumbnails/placeholder.svg'">
+    <div class="doc-card-label">Author et al. (Year)<br>Short title</div>
+  </a>
+</div>
+```
+
 
 **Key concepts to be familiar with:**
 
@@ -44,7 +63,15 @@ These readings introduce survival analysis concepts and methods used throughout 
 
 ### Cross-disciplinary Reading
 
-*Papers directly addressing the intersection of SA and IDM will be listed here*
+```{=html}
+<div class="doc-cards">
+  <a href="assets/reading-crossdisciplinary.pdf" class="doc-card" target="_blank">
+    <img src="assets/thumbnails/reading-crossdisciplinary.png" alt="Cross-disciplinary reading" onerror="this.src='assets/thumbnails/placeholder.svg'">
+    <div class="doc-card-label">Author et al. (Year)<br>Short title</div>
+  </a>
+</div>
+```
+
 
 ---
 

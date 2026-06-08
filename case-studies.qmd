@@ -13,6 +13,23 @@ Participants do **not** see the underlying complete individual-level dataset unt
 
 ---
 
+## Case Study Documents
+
+```{=html}
+<div class="doc-cards">
+  <a href="assets/case-study-a.docx" class="doc-card" download>
+    <img src="assets/thumbnails/case-study-a.png" alt="Case Study A" onerror="this.src='assets/thumbnails/placeholder.svg'">
+    <div class="doc-card-label">Case Study A<br>Natural epidemic course</div>
+  </a>
+  <a href="assets/case-study-b.docx" class="doc-card" download>
+    <img src="assets/thumbnails/case-study-b.png" alt="Case Study B" onerror="this.src='assets/thumbnails/placeholder.svg'">
+    <div class="doc-card-label">Case Study B<br>Vaccine efficacy</div>
+  </a>
+</div>
+```
+
+---
+
 ## Case Study A — Natural Course of the Epidemic
 
 **Focus period:** Before vaccination becomes available.

@@ -1,0 +1,324 @@
+[
+  {
+    "objectID": "day1.html",
+    "href": "day1.html",
+    "title": "Day 1 — Foundation Setting",
+    "section": "",
+    "text": "Establishing common vocabulary and introducing the case studies."
+  },
+  {
+    "objectID": "day1.html#schedule",
+    "href": "day1.html#schedule",
+    "title": "Day 1 — Foundation Setting",
+    "section": "Schedule",
+    "text": "Schedule\n\n\n\n\n\n\n\nTime\nActivity\n\n\n\n\n9:00–10:00\nArrival and registration\n\n\n10:00–10:30\nWelcome and opening by the Lorentz Center\n\n\n10:30–12:00\nIcebreakers · Introduction to Survival Analysis (lecture + Q&A)\n\n\n12:00–14:00\nLunch\n\n\n14:00–15:30\nIntroduction to Infectious Disease Modeling (lecture + Q&A) · Form mixed groups · Introduce Case Studies A and B\n\n\n15:30–16:00\nAfternoon break\n\n\n16:00–17:00\nPlenary: Groups present first ideas on how to approach their case study\n\n\n17:00–19:00\nWelcome reception"
+  },
+  {
+    "objectID": "day1.html#materials",
+    "href": "day1.html#materials",
+    "title": "Day 1 — Foundation Setting",
+    "section": "Materials",
+    "text": "Materials\n\nIntroduction to Survival Analysis\nSlides will be posted here\n\n\nIntroduction to Infectious Disease Modeling\nSlides will be posted here\n\n\nCase Study Overview\nBackground document will be posted here — see also the Case Studies page"
+  },
+  {
+    "objectID": "day3.html",
+    "href": "day3.html",
+    "title": "Day 3 — Integration & Refinement",
+    "section": "",
+    "text": "Groups address practical challenges from Day 2 — censoring, time-varying effects, computational efficiency — refine their analysis strategies, and prepare final presentations."
+  },
+  {
+    "objectID": "day3.html#schedule",
+    "href": "day3.html#schedule",
+    "title": "Day 3 — Integration & Refinement",
+    "section": "Schedule",
+    "text": "Schedule\n\n\n\n\n\n\n\nTime\nActivity\n\n\n\n\n9:00–10:00\nOpen discussion: ideas, challenges, and outstanding questions\n\n\n10:00–10:30\nMorning break\n\n\n10:30–12:00\nRefine analysis plan · Implement · Prepare code examples\n\n\n12:00–14:00\nLunch\n\n\n14:00–15:30\nContinue case study work in small groups · Prepare presentation of final analysis plan\n\n\n15:30–16:00\nAfternoon break\n\n\n16:00–17:00\nPlenary: Group progress reports · Identify key learnings"
+  },
+  {
+    "objectID": "day3.html#materials",
+    "href": "day3.html#materials",
+    "title": "Day 3 — Integration & Refinement",
+    "section": "Materials",
+    "text": "Materials\n\nCode Examples\nAnnotated code from group sessions will be shared here"
+  },
+  {
+    "objectID": "before-you-arrive.html",
+    "href": "before-you-arrive.html",
+    "title": "Before You Arrive",
+    "section": "",
+    "text": "Note\n\n\n\nThese materials help participants from both communities build enough background to engage productively from Day 1. You do not need to be an expert in the other field — the goal is familiarity with key concepts and terminology."
+  },
+  {
+    "objectID": "before-you-arrive.html#pre-course-reading",
+    "href": "before-you-arrive.html#pre-course-reading",
+    "title": "Before You Arrive",
+    "section": "Pre-Course Reading",
+    "text": "Pre-Course Reading\n\nFor Participants from Survival Analysis\nThese readings introduce infectious disease modeling concepts used throughout the workshop.\n\n  \n    \n    Author et al. (Year)Short title\n  \n\n\nKey concepts to be familiar with:\n\nThe SIR/SEIRD compartmental model framework\nThe basic reproduction number R0 and effective reproduction number Reff(t)\nReporting delays and underreporting in epidemic surveillance data\nThe difference between individual-level and aggregate (population-level) data\n\n\n\n\nFor Participants from Infectious Disease Modeling\nThese readings introduce survival analysis concepts and methods used throughout the workshop.\n\n  \n    \n    Author et al. (Year)Short title\n  \n\nKey concepts to be familiar with:\n\nThe hazard function and its relationship to survival probability\nRight-censoring and interval-censoring: what they mean and how they are handled\nCompeting risks: what they are and why ignoring them can bias estimates\nMulti-state models: modeling transitions between multiple states (e.g., S → E → I → R)\nFrailty models: incorporating unobserved heterogeneity\n\n\n\n\nCross-disciplinary Reading\n\n  \n    \n    Author et al. (Year)Short title"
+  },
+  {
+    "objectID": "before-you-arrive.html#software",
+    "href": "before-you-arrive.html#software",
+    "title": "Before You Arrive",
+    "section": "Software",
+    "text": "Software\nThe workshop uses R as the primary computing environment. Please install the following before arriving.\n\nR and RStudio\n\nR (≥ 4.3.0 recommended)\nRStudio Desktop\n\n\n\nR Packages\n\nSurvival Analysis\ninstall.packages(c(\n  \"survival\",    # core survival analysis\n  \"survminer\",   # visualization\n  \"mstate\",      # multi-state models\n  \"flexsurv\",    # flexible parametric survival models\n  \"frailtyEM\",   # frailty models\n  \"timereg\",     # additive hazard models\n  \"cmprsk\"       # competing risks\n))\n\n\nInfectious Disease Modeling\ninstall.packages(c(\n  \"EpiEstim\",    # reproduction number estimation\n  \"EpiNow2\",     # nowcasting and R estimation with delays\n  \"deSolve\",     # ODE solvers for compartmental models\n  \"odin\",        # fast ODE model specification\n  \"socialmixr\"   # contact matrices for structured populations\n))\n\n\nGeneral\ninstall.packages(c(\n  \"tidyverse\",\n  \"ggplot2\",\n  \"patchwork\",\n  \"knitr\",\n  \"rmarkdown\"\n))\nVerify your installation:\nlibrary(survival)\nlibrary(mstate)\nlibrary(EpiEstim)\nlibrary(deSolve)\ncat(\"All core packages loaded successfully.\\n\")"
+  },
+  {
+    "objectID": "before-you-arrive.html#case-study-data",
+    "href": "before-you-arrive.html#case-study-data",
+    "title": "Before You Arrive",
+    "section": "Case Study Data",
+    "text": "Case Study Data\nThe two case study datasets will be provided to participants ahead of the workshop and posted here for download.\n\n\n\n\n\n\nWarning\n\n\n\nPlease do not share the case study data externally — the complete underlying dataset is revealed at the end of the workshop as part of the learning experience.\n\n\nSee the Case Studies page for full descriptions of both datasets."
+  },
+  {
+    "objectID": "day4.html",
+    "href": "day4.html",
+    "title": "Day 4 — Knowledge Transfer Tools",
+    "section": "",
+    "text": "Shifting from analysis to dissemination: groups develop vignettes with worked code examples and draft the “Ten Simple Rules for SA–IDM Integration”."
+  },
+  {
+    "objectID": "day4.html#schedule",
+    "href": "day4.html#schedule",
+    "title": "Day 4 — Knowledge Transfer Tools",
+    "section": "Schedule",
+    "text": "Schedule\n\n\n\n\n\n\n\nTime\nActivity\n\n\n\n\n9:00–10:00\nIntroduce “Ten Simple Rules” concept · Brainstorm rules · Form writing and coding teams\n\n\n10:00–10:30\nMorning break\n\n\n10:30–12:00\nBegin vignette development in mixed groups · Document code examples · Draft Ten Simple Rules\n\n\n12:00–12:30\nKeynote: SA perspective — case studies illustrating challenges and areas for collaboration\n\n\n12:30–14:00\nLunch\n\n\n14:00–15:30\nContinue vignette development\n\n\n15:30–16:00\nAfternoon break\n\n\n16:00–17:00\nPlenary: Review and discuss draft Ten Simple Rules"
+  },
+  {
+    "objectID": "day4.html#materials",
+    "href": "day4.html#materials",
+    "title": "Day 4 — Knowledge Transfer Tools",
+    "section": "Materials",
+    "text": "Materials\n\nKeynote Slides\nTo be posted after the workshop\n\n\nDraft Vignettes\nLinks will appear here as groups share their drafts\n\n\nTen Simple Rules — Working Document\nWorking draft will be linked here"
+  },
+  {
+    "objectID": "case-studies.html",
+    "href": "case-studies.html",
+    "title": "Case Studies",
+    "section": "",
+    "text": "The workshop is structured around two case studies derived from a single simulated population-wide outbreak. The underlying data are inspired by the SARS-CoV-2 pandemic and generated from a structured compartmental SEIRD model in a closed population of 1,000,000 individuals, with heterogeneity in susceptibility and infectiousness, an intervention period, and a vaccination campaign introduced partway through the outbreak.\n\n\n\n\n\n\nImportant\n\n\n\nParticipants do not see the underlying complete individual-level dataset until the very end of the workshop. The two case study datasets are extracts designed to mimic realistic data availability settings."
+  },
+  {
+    "objectID": "case-studies.html#overview",
+    "href": "case-studies.html#overview",
+    "title": "Case Studies",
+    "section": "",
+    "text": "The workshop is structured around two case studies derived from a single simulated population-wide outbreak. The underlying data are inspired by the SARS-CoV-2 pandemic and generated from a structured compartmental SEIRD model in a closed population of 1,000,000 individuals, with heterogeneity in susceptibility and infectiousness, an intervention period, and a vaccination campaign introduced partway through the outbreak.\n\n\n\n\n\n\nImportant\n\n\n\nParticipants do not see the underlying complete individual-level dataset until the very end of the workshop. The two case study datasets are extracts designed to mimic realistic data availability settings."
+  },
+  {
+    "objectID": "case-studies.html#case-study-a-natural-course-of-the-epidemic",
+    "href": "case-studies.html#case-study-a-natural-course-of-the-epidemic",
+    "title": "Case Studies",
+    "section": "Case Study A — Natural Course of the Epidemic",
+    "text": "Case Study A — Natural Course of the Epidemic\nFocus period: Before vaccination becomes available.\nAvailable data: Daily aggregate counts of new infections (subject to reporting delays and underreporting), hospitalizations, and deaths.\nAnalytical aims:\n\nEstimate the reproduction number (R0 and Reff) over time\nEstimate the effect of intervention measures on transmission\nPredict the future course of the epidemic under different scenarios\nHandle incomplete data — censoring, reporting delays, and underreporting"
+  },
+  {
+    "objectID": "case-studies.html#case-study-b-vaccine-efficacy",
+    "href": "case-studies.html#case-study-b-vaccine-efficacy",
+    "title": "Case Studies",
+    "section": "Case Study B — Vaccine Efficacy",
+    "text": "Case Study B — Vaccine Efficacy\nFocus period: After vaccination becomes available.\nAvailable data: Daily aggregate counts of infections, hospitalizations, deaths, and vaccinations (including uptake aggregated over population subgroups).\nAnalytical aims:\n\nEstimate vaccine efficacy (VE) against infection, hospitalization, and death\nUnderstand time-dependent vaccine effectiveness (waning immunity)\nCharacterize heterogeneity in vaccine uptake and efficacy across subgroups"
+  },
+  {
+    "objectID": "case-studies.html#working-groups",
+    "href": "case-studies.html#working-groups",
+    "title": "Case Studies",
+    "section": "Working Groups",
+    "text": "Working Groups\nParticipants are divided into four mixed-discipline groups (two per case study), intentionally composed across SA and IDM expertise and career stage. Groups working on the same case study meet on Day 2 to compare analysis plans before refining independently. All groups share findings in the daily plenary sessions."
+  },
+  {
+    "objectID": "analysis/index.html",
+    "href": "analysis/index.html",
+    "title": "Group Analysis Scripts",
+    "section": "",
+    "text": "Each working group has a subfolder here for their analysis scripts. Groups are free to organize their code however works best for them — the structure below is just a starting point."
+  },
+  {
+    "objectID": "analysis/index.html#groups",
+    "href": "analysis/index.html#groups",
+    "title": "Group Analysis Scripts",
+    "section": "Groups",
+    "text": "Groups\n\n\n\nGroup\nCase Study\nFolder\n\n\n\n\nGroup A1\nCase Study A (Natural epidemic course)\ngroup-A1/\n\n\nGroup A2\nCase Study A (Natural epidemic course)\ngroup-A2/\n\n\nGroup B1\nCase Study B (Vaccine efficacy)\ngroup-B1/\n\n\nGroup B2\nCase Study B (Vaccine efficacy)\ngroup-B2/"
+  },
+  {
+    "objectID": "analysis/index.html#suggested-folder-structure",
+    "href": "analysis/index.html#suggested-folder-structure",
+    "title": "Group Analysis Scripts",
+    "section": "Suggested Folder Structure",
+    "text": "Suggested Folder Structure\nanalysis/\n├── group-A1/\n│   ├── 01_explore_data.R\n│   ├── 02_analysis_plan.md\n│   ├── 03_competing_risks.R\n│   └── 04_multistate_model.R\n├── group-A2/\n│   └── ...\n├── group-B1/\n│   └── ...\n└── group-B2/\n    └── ..."
+  },
+  {
+    "objectID": "analysis/index.html#guidelines",
+    "href": "analysis/index.html#guidelines",
+    "title": "Group Analysis Scripts",
+    "section": "Guidelines",
+    "text": "Guidelines\n\nUse descriptive filenames prefixed with a number (e.g., 01_, 02_) to indicate order\nAdd a short comment at the top of each script explaining what it does\nCommit regularly so your group members have access to the latest version\nIf a script takes a long time to run, save output objects (.rds files) and commit those too"
+  },
+  {
+    "objectID": "vignettes/index.html",
+    "href": "vignettes/index.html",
+    "title": "Vignettes",
+    "section": "",
+    "text": "Vignettes document the analytical approaches developed during the workshop, combining scientific motivation, step-by-step methodology, and fully reproducible R code. Each vignette covers a specific SA–IDM integration example applied to one of the two case studies."
+  },
+  {
+    "objectID": "vignettes/index.html#case-study-a-natural-course-of-the-epidemic",
+    "href": "vignettes/index.html#case-study-a-natural-course-of-the-epidemic",
+    "title": "Vignettes",
+    "section": "Case Study A — Natural Course of the Epidemic",
+    "text": "Case Study A — Natural Course of the Epidemic\nVignettes to be added"
+  },
+  {
+    "objectID": "vignettes/index.html#case-study-b-vaccine-efficacy",
+    "href": "vignettes/index.html#case-study-b-vaccine-efficacy",
+    "title": "Vignettes",
+    "section": "Case Study B — Vaccine Efficacy",
+    "text": "Case Study B — Vaccine Efficacy\nVignettes to be added"
+  },
+  {
+    "objectID": "vignettes/index.html#how-to-contribute-a-vignette",
+    "href": "vignettes/index.html#how-to-contribute-a-vignette",
+    "title": "Vignettes",
+    "section": "How to Contribute a Vignette",
+    "text": "How to Contribute a Vignette\n\nCreate a new .qmd file in the vignettes/ folder using the naming convention vignette-[topic].qmd\nWrite your vignette using the template below\nCommit and push — it will appear on the site automatically\n\n\nVignette Template\n---\ntitle: \"Your Vignette Title\"\nauthor: \"Author Names\"\ndate: today\n---\n\n## Scientific Background\n\n## Methods\n\n## Data\n\n## Analysis\n\n## Results\n\n## Discussion and Limitations\n\n## Session Info\n\n\n::: {.cell}\n\n```{.r .cell-code}\nsessionInfo()\n\nR version 4.5.2 (2025-10-31)\nPlatform: aarch64-apple-darwin20\nRunning under: macOS Tahoe 26.5\n\nMatrix products: default\nBLAS:   /System/Library/Frameworks/Accelerate.framework/Versions/A/Frameworks/vecLib.framework/Versions/A/libBLAS.dylib \nLAPACK: /Library/Frameworks/R.framework/Versions/4.5-arm64/Resources/lib/libRlapack.dylib;  LAPACK version 3.12.1\n\nlocale:\n[1] en_AU.UTF-8/en_AU.UTF-8/en_AU.UTF-8/C/en_AU.UTF-8/en_AU.UTF-8\n\ntime zone: America/Chicago\ntzcode source: internal\n\nattached base packages:\n[1] stats     graphics  grDevices utils     datasets  methods   base     \n\nloaded via a namespace (and not attached):\n [1] htmlwidgets_1.6.4 compiler_4.5.2    fastmap_1.2.0     cli_3.6.6        \n [5] tools_4.5.2       htmltools_0.5.9   otel_0.2.0        yaml_2.3.12      \n [9] rmarkdown_2.31    knitr_1.51        jsonlite_2.0.0    xfun_0.57        \n[13] digest_0.6.39     rlang_1.2.0       evaluate_1.0.5   \n\n:::\n```"
+  },
+  {
+    "objectID": "organizers.html",
+    "href": "organizers.html",
+    "title": "Scientific Organizers",
+    "section": "",
+    "text": "Leiden University Medical Center (LUMC)\nBiography to be added\n\n\n\n\nLeiden University Medical Center (LUMC)\nBiography to be added\n\n\n\n\nUniversity of Melbourne & University of Hong Kong\nBiography to be added\n\n\n\n\nNational Institute for Public Health and the Environment (RIVM) & Wageningen University and Research\nBiography to be added\n\n\n\n\nNational Institute for Public Health and the Environment (RIVM) & Leiden University Medical Center (LUMC)\nBiography to be added\n\n\n\n\nUHasselt & University of Antwerp\nBiography to be added"
+  },
+  {
+    "objectID": "organizers.html#organizing-committee",
+    "href": "organizers.html#organizing-committee",
+    "title": "Scientific Organizers",
+    "section": "",
+    "text": "Leiden University Medical Center (LUMC)\nBiography to be added\n\n\n\n\nLeiden University Medical Center (LUMC)\nBiography to be added\n\n\n\n\nUniversity of Melbourne & University of Hong Kong\nBiography to be added\n\n\n\n\nNational Institute for Public Health and the Environment (RIVM) & Wageningen University and Research\nBiography to be added\n\n\n\n\nNational Institute for Public Health and the Environment (RIVM) & Leiden University Medical Center (LUMC)\nBiography to be added\n\n\n\n\nUHasselt & University of Antwerp\nBiography to be added"
+  },
+  {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "Connecting Survival Analysis and Infectious Disease Modeling",
+    "section": "",
+    "text": "15 – 19 June 2026  ·  Lorentz Center @lambda, Leiden, the Netherlands\nPart of the NIAS-Lorentz Program"
+  },
+  {
+    "objectID": "index.html#about-the-workshop",
+    "href": "index.html#about-the-workshop",
+    "title": "Connecting Survival Analysis and Infectious Disease Modeling",
+    "section": "About the Workshop",
+    "text": "About the Workshop\nSurvival analysis (SA) and infectious disease modelling (IDM) are two disciplines that frequently tackle similar scientific problems—time-to-event outcomes, heterogeneity in populations, and the effects of interventions—yet they do so with largely separate methodological frameworks. This workshop brings together researchers from both communities to make these (dis)connections explicit, learn from one another, and develop shared tools for cross-disciplinary analysis.\nOver five days, participants will work in small mixed groups on two shared case studies using realistic simulated epidemic data, and collectively produce vignettes, code examples, and a “Ten Simple Rules” guide for SA–IDM integration. See the Programme for the full schedule."
+  },
+  {
+    "objectID": "index.html#scientific-organizers",
+    "href": "index.html#scientific-organizers",
+    "title": "Connecting Survival Analysis and Infectious Disease Modeling",
+    "section": "Scientific Organizers",
+    "text": "Scientific Organizers\n\n\n\nName\nAffiliation\n\n\n\n\nLiesbeth de Wreede\nLeiden University Medical Center (LUMC)\n\n\nHein Putter\nLeiden University Medical Center (LUMC)\n\n\nKylie Ainslie\nUniversity of Melbourne & University of Hong Kong\n\n\nDon Klinkenberg\nRIVM & Wageningen University and Research\n\n\nJacco Wallinga\nRIVM & Leiden University Medical Center (LUMC)\n\n\nSteven Abrams\nUHasselt & University of Antwerp"
+  },
+  {
+    "objectID": "index.html#workshop-poster",
+    "href": "index.html#workshop-poster",
+    "title": "Connecting Survival Analysis and Infectious Disease Modeling",
+    "section": "Workshop Poster",
+    "text": "Workshop Poster\n\nDownload Poster (PDF)"
+  },
+  {
+    "objectID": "programme.html",
+    "href": "programme.html",
+    "title": "Programme",
+    "section": "",
+    "text": "Day\nTheme\n\n\n\n\nDay 1\nFoundation Setting\n\n\nDay 2\nMethodological Exploration\n\n\nDay 3\nIntegration & Refinement\n\n\nDay 4\nKnowledge Transfer Tools\n\n\nDay 5\nConsolidation & Future Directions"
+  },
+  {
+    "objectID": "programme.html#overview",
+    "href": "programme.html#overview",
+    "title": "Programme",
+    "section": "",
+    "text": "Day\nTheme\n\n\n\n\nDay 1\nFoundation Setting\n\n\nDay 2\nMethodological Exploration\n\n\nDay 3\nIntegration & Refinement\n\n\nDay 4\nKnowledge Transfer Tools\n\n\nDay 5\nConsolidation & Future Directions"
+  },
+  {
+    "objectID": "programme.html#detailed-schedule",
+    "href": "programme.html#detailed-schedule",
+    "title": "Programme",
+    "section": "Detailed Schedule",
+    "text": "Detailed Schedule\n\nDay 1 — Foundation Setting (Mon 15 June)\n\n\n\n\n\n\n\nTime\nActivity\n\n\n\n\n9:00–10:00\nArrival and registration\n\n\n10:00–10:30\nWelcome and opening by the Lorentz Center\n\n\n10:30–12:00\nIcebreakers · Introduction to Survival Analysis (lecture + Q&A)\n\n\n12:00–14:00\nLunch\n\n\n14:00–15:30\nIntroduction to Infectious Disease Modeling (lecture + Q&A) · Form mixed groups · Introduce Case Studies A and B\n\n\n15:30–16:00\nAfternoon break\n\n\n16:00–17:00\nPlenary: Groups present first ideas on how to approach their case study\n\n\n17:00–19:00\nWelcome reception\n\n\n\n\n\n\nDay 2 — Methodological Exploration (Tue 16 June)\n\n\n\n\n\n\n\nTime\nActivity\n\n\n\n\n9:00–10:00\nSmall group work: explore data, develop analysis plans, begin implementation\n\n\n10:00–10:30\nMorning break\n\n\n10:30–12:00\nContinue analyses · Prepare preliminary findings\n\n\n12:00–12:30\nKeynote: IDM perspective on case studies\n\n\n12:30–14:00\nLunch\n\n\n14:00–15:30\nIntergroup session: groups on the same case study compare analysis plans · Separate and refine\n\n\n15:30–16:00\nAfternoon break\n\n\n16:00–17:00\nPlenary: Discuss both case studies with everyone\n\n\n18:30\nConference dinner\n\n\n\n\n\n\nDay 3 — Integration & Refinement (Wed 17 June)\n\n\n\n\n\n\n\nTime\nActivity\n\n\n\n\n9:00–10:00\nOpen discussion: ideas, challenges, outstanding questions\n\n\n10:00–10:30\nMorning break\n\n\n10:30–12:00\nRefine analysis plan · Implement · Prepare code examples\n\n\n12:00–14:00\nLunch\n\n\n14:00–15:30\nContinue case study work in small groups\n\n\n15:30–16:00\nAfternoon break\n\n\n16:00–17:00\nPlenary: Group progress reports · Identify key learnings\n\n\n\n\n\n\nDay 4 — Knowledge Transfer Tools (Thu 18 June)\n\n\n\n\n\n\n\nTime\nActivity\n\n\n\n\n9:00–10:00\nIntroduce “Ten Simple Rules” · Brainstorm · Form writing and coding teams\n\n\n10:00–10:30\nMorning break\n\n\n10:30–12:00\nBegin vignette development · Document code examples · Draft Ten Simple Rules\n\n\n12:00–12:30\nKeynote: SA perspective on case studies\n\n\n12:30–14:00\nLunch\n\n\n14:00–15:30\nContinue vignette development\n\n\n15:30–16:00\nAfternoon break\n\n\n16:00–17:00\nPlenary: Review draft Ten Simple Rules\n\n\n\n\n\n\nDay 5 — Consolidation & Future Directions (Fri 19 June)\n\n\n\n\n\n\n\nTime\nActivity\n\n\n\n\n9:00–10:00\nPlenary: Finalize Ten Simple Rules · Present vignettes and code examples\n\n\n10:00–10:30\nMorning break\n\n\n10:30–12:00\nFinalize action plans · Assign post-workshop responsibilities · Closing celebration\n\n\n12:00–14:00\nLunch\n\n\n14:00–15:30\nOptional activities\n\n\n15:30–16:00\nAfternoon break\n\n\n16:00–17:00\nOptional plenary / wrap-up"
+  },
+  {
+    "objectID": "day5.html",
+    "href": "day5.html",
+    "title": "Day 5 — Consolidation & Future Directions",
+    "section": "",
+    "text": "Finalizing deliverables: Ten Simple Rules are reviewed and agreed, vignettes are presented, and participants leave with clear post-workshop plans."
+  },
+  {
+    "objectID": "day5.html#schedule",
+    "href": "day5.html#schedule",
+    "title": "Day 5 — Consolidation & Future Directions",
+    "section": "Schedule",
+    "text": "Schedule\n\n\n\n\n\n\n\nTime\nActivity\n\n\n\n\n9:00–10:00\nPlenary: Finalize Ten Simple Rules · Presentations of vignettes and code examples\n\n\n10:00–10:30\nMorning break\n\n\n10:30–12:00\nFuture tasks and responsibilities · Finalize action plans · Assign responsibilities · Closing celebration\n\n\n12:00–14:00\nLunch\n\n\n14:00–15:30\nOptional activities\n\n\n15:30–16:00\nAfternoon break\n\n\n16:00–17:00\nOptional plenary / wrap-up"
+  },
+  {
+    "objectID": "day5.html#materials",
+    "href": "day5.html#materials",
+    "title": "Day 5 — Consolidation & Future Directions",
+    "section": "Materials",
+    "text": "Materials\n\nTen Simple Rules — Final Document\nFinal version will be linked here after the workshop\n\n\nVignettes and Code Examples\nAll vignettes presented on Day 5 will be posted on the Vignettes page"
+  },
+  {
+    "objectID": "day2.html",
+    "href": "day2.html",
+    "title": "Day 2 — Methodological Exploration",
+    "section": "",
+    "text": "Hands-on analysis: groups explore data, develop analysis plans, and share preliminary findings with the partner group on the same case study."
+  },
+  {
+    "objectID": "day2.html#schedule",
+    "href": "day2.html#schedule",
+    "title": "Day 2 — Methodological Exploration",
+    "section": "Schedule",
+    "text": "Schedule\n\n\n\n\n\n\n\nTime\nActivity\n\n\n\n\n9:00–10:00\nSmall group work: explore data, develop analysis plans, begin implementation\n\n\n10:00–10:30\nMorning break\n\n\n10:30–12:00\nContinue analyses · Prepare preliminary findings\n\n\n12:00–12:30\nKeynote: IDM perspective — case studies illustrating challenges and areas for collaboration\n\n\n12:30–14:00\nLunch\n\n\n14:00–15:30\nIntergroup session: Groups on the same case study compare analysis plans · Separate and refine\n\n\n15:30–16:00\nAfternoon break\n\n\n16:00–17:00\nPlenary: Discuss both case studies with everyone\n\n\n18:30\nConference dinner"
+  },
+  {
+    "objectID": "day2.html#materials",
+    "href": "day2.html#materials",
+    "title": "Day 2 — Methodological Exploration",
+    "section": "Materials",
+    "text": "Materials\n\nKeynote Slides\nTo be posted after the workshop\n\n\nGroup Analysis Plans\nGroups will share their analysis plan documents here"
+  },
+  {
+    "objectID": "resources.html",
+    "href": "resources.html",
+    "title": "Resources",
+    "section": "",
+    "text": "Kalbfleisch JD, Prentice RL. The Statistical Analysis of Failure Time Data. 2nd ed. Wiley, 2002.\nKlein JP, Moeschberger ML. Survival Analysis: Techniques for Censored and Truncated Data. 2nd ed. Springer, 2003.\nPutter H, Fiocco M, Geskus RB. Tutorial in biostatistics: competing risks and multi-state models. Statistics in Medicine 2007; 26(11):2389–2430."
+  },
+  {
+    "objectID": "resources.html#survival-analysis",
+    "href": "resources.html#survival-analysis",
+    "title": "Resources",
+    "section": "",
+    "text": "Kalbfleisch JD, Prentice RL. The Statistical Analysis of Failure Time Data. 2nd ed. Wiley, 2002.\nKlein JP, Moeschberger ML. Survival Analysis: Techniques for Censored and Truncated Data. 2nd ed. Springer, 2003.\nPutter H, Fiocco M, Geskus RB. Tutorial in biostatistics: competing risks and multi-state models. Statistics in Medicine 2007; 26(11):2389–2430."
+  },
+  {
+    "objectID": "resources.html#infectious-disease-modeling",
+    "href": "resources.html#infectious-disease-modeling",
+    "title": "Resources",
+    "section": "Infectious Disease Modeling",
+    "text": "Infectious Disease Modeling\n\nTextbooks\n\nKeeling MJ, Rohani P. Modeling Infectious Diseases in Humans and Animals. Princeton University Press, 2008.\nVynnycky E, White RG. An Introduction to Infectious Disease Modelling. Oxford University Press, 2010.\nAnderson RM, May RM. Infectious Diseases of Humans: Dynamics and Control. Oxford University Press, 1991."
+  },
+  {
+    "objectID": "resources.html#cross-disciplinary",
+    "href": "resources.html#cross-disciplinary",
+    "title": "Resources",
+    "section": "Cross-disciplinary",
+    "text": "Cross-disciplinary\nPapers directly addressing the intersection of SA and IDM will be listed here"
+  },
+  {
+    "objectID": "case-studies.html#case-study-documents",
+    "href": "case-studies.html#case-study-documents",
+    "title": "Case Studies",
+    "section": "Case Study Documents",
+    "text": "Case Study Documents\n\n  \n    \n    Case Study ANatural epidemic course\n  \n  \n    \n    Case Study BVaccine efficacy"
+  }
+]
