@@ -13,7 +13,7 @@ subtitle: "Monday 15 June 2026"
 | 10:00–10:30 | Welcome and opening by the Lorentz Center |
 | 10:30–12:00 | Icebreakers · **Introduction to Survival Analysis** (lecture + Q&A) |
 | 12:00–14:00 | Lunch |
-| 14:00–15:30 | **Introduction to Infectious Disease Modeling** (lecture + Q&A) · Form mixed groups · Introduce Case Studies A and B |
+| 14:00–15:30 | **Introduction to Infectious Disease Modeling** (lecture + Q&A) · Form mixed groups · Introduce case study |
 | 15:30–16:00 | Afternoon break |
 | 16:00–17:00 | **Plenary:** Groups present first ideas on how to approach their case study |
 | 17:00–19:00 | Welcome reception |
@@ -32,4 +32,4 @@ subtitle: "Monday 15 June 2026"
 
 ### Case Study Overview
 
-*Background document will be posted here — see also the [Case Studies](case-studies.qmd) page*
+*Background document will be posted here — see also the [Case Study](case-studies.qmd) page*

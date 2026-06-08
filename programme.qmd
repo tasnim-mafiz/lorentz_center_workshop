@@ -25,7 +25,7 @@ subtitle: "15–19 June 2026, Lorentz Center, Leiden"
 | 10:00–10:30 | Welcome and opening by the Lorentz Center |
 | 10:30–12:00 | Icebreakers · Introduction to Survival Analysis (lecture + Q&A) |
 | 12:00–14:00 | Lunch |
-| 14:00–15:30 | Introduction to Infectious Disease Modeling (lecture + Q&A) · Form mixed groups · Introduce Case Studies A and B |
+| 14:00–15:30 | Introduction to Infectious Disease Modeling (lecture + Q&A) · Form mixed groups · Introduce case study |
 | 15:30–16:00 | Afternoon break |
 | 16:00–17:00 | **Plenary:** Groups present first ideas on how to approach their case study |
 | 17:00–19:00 | Welcome reception |
@@ -39,11 +39,11 @@ subtitle: "15–19 June 2026, Lorentz Center, Leiden"
 | 9:00–10:00 | Small group work: explore data, develop analysis plans, begin implementation |
 | 10:00–10:30 | Morning break |
 | 10:30–12:00 | Continue analyses · Prepare preliminary findings |
-| 12:00–12:30 | Keynote: IDM perspective on case studies |
+| 12:00–12:30 | Keynote: IDM perspective |
 | 12:30–14:00 | Lunch |
-| 14:00–15:30 | Intergroup session: groups on the same case study compare analysis plans · Separate and refine |
+| 14:00–15:30 | Intergroup session: groups compare analysis plans · Separate and refine |
 | 15:30–16:00 | Afternoon break |
-| 16:00–17:00 | **Plenary:** Discuss both case studies with everyone |
+| 16:00–17:00 | **Plenary:** Discuss findings across groups |
 | 18:30 | Conference dinner |
 
 ---

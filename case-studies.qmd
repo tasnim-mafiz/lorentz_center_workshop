@@ -1,64 +1,39 @@
 ---
-title: "Case Studies"
+title: "Case Study"
 subtitle: "Simulated epidemic data for cross-disciplinary analysis"
 ---
 
 ## Overview
 
-The workshop is structured around two case studies derived from a single simulated population-wide outbreak. The underlying data are inspired by the SARS-CoV-2 pandemic and generated from a structured compartmental SEIRD model in a closed population of 1,000,000 individuals, with heterogeneity in susceptibility and infectiousness, an intervention period, and a vaccination campaign introduced partway through the outbreak.
+The workshop is structured around a single simulated population-wide outbreak. The underlying data are inspired by the SARS-CoV-2 pandemic and generated from a structured compartmental SEIRD model in a closed population of 1,000,000 individuals, with heterogeneity in susceptibility and infectiousness, an intervention period, and a vaccination campaign introduced partway through the outbreak.
+
+Groups choose which questions to tackle from the case study document.
 
 ::: {.callout-important}
-Participants do **not** see the underlying complete individual-level dataset until the very end of the workshop. The two case study datasets are extracts designed to mimic realistic data availability settings.
+Participants do **not** see the underlying complete individual-level dataset until the very end of the workshop. The case study dataset is an extract designed to mimic realistic data availability settings.
 :::
 
 ---
 
-## Case Study Documents
+## Case Study Document
 
 ```{=html}
 <div class="doc-cards">
-  <a href="assets/case-study-a.docx" class="doc-card" download>
-    <img src="assets/thumbnails/case-study-a.png" alt="Case Study A" onerror="this.src='assets/thumbnails/placeholder.svg'">
-    <div class="doc-card-label">Case Study A<br>Natural epidemic course</div>
-  </a>
-  <a href="assets/case-study-b.docx" class="doc-card" download>
-    <img src="assets/thumbnails/case-study-b.png" alt="Case Study B" onerror="this.src='assets/thumbnails/placeholder.svg'">
-    <div class="doc-card-label">Case Study B<br>Vaccine efficacy</div>
+  <a href="assets/case-study.docx" class="doc-card" download>
+    <img src="assets/thumbnails/case-study.png" alt="Case Study" onerror="this.src='assets/thumbnails/placeholder.svg'">
+    <div class="doc-card-label">Case Study</div>
   </a>
 </div>
 ```
 
 ---
 
-## Case Study A — Natural Course of the Epidemic
+## Data
 
-**Focus period:** Before vaccination becomes available.
-
-**Available data:** Daily aggregate counts of new infections (subject to reporting delays and underreporting), hospitalizations, and deaths.
-
-**Analytical aims:**
-
-- Estimate the reproduction number (R~0~ and R~eff~) over time
-- Estimate the effect of intervention measures on transmission
-- Predict the future course of the epidemic under different scenarios
-- Handle incomplete data — censoring, reporting delays, and underreporting
-
----
-
-## Case Study B — Vaccine Efficacy
-
-**Focus period:** After vaccination becomes available.
-
-**Available data:** Daily aggregate counts of infections, hospitalizations, deaths, and vaccinations (including uptake aggregated over population subgroups).
-
-**Analytical aims:**
-
-- Estimate vaccine efficacy (VE) against infection, hospitalization, and death
-- Understand time-dependent vaccine effectiveness (waning immunity)
-- Characterize heterogeneity in vaccine uptake and efficacy across subgroups
+**Available data:** Daily aggregate counts of new infections (subject to reporting delays and underreporting), hospitalizations, deaths, and (from the vaccination period) vaccine uptake aggregated over population subgroups.
 
 ---
 
 ## Working Groups
 
-Participants are divided into **four mixed-discipline groups** (two per case study), intentionally composed across SA and IDM expertise and career stage. Groups working on the same case study meet on Day 2 to compare analysis plans before refining independently. All groups share findings in the daily plenary sessions.
+Participants are divided into **four mixed-discipline groups**, intentionally composed across SA and IDM expertise and career stage. Each group selects questions from the case study document to focus on, shares preliminary findings in intergroup sessions, and presents to everyone in the daily plenary.
