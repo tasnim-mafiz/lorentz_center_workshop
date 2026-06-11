@@ -25,13 +25,21 @@ Vignettes will be added here as they are finalized during and after the workshop
 
 *Vignettes to be added*
 
-## How to Contribute a Vignette
+---
 
-1. Create a new `.qmd` file in the `vignettes/` folder using the naming convention `vignette-[topic].qmd`
-2. Write your vignette using the template below
-3. Commit and push — it will appear on the site automatically
+## Contributing a Vignette
 
-### Vignette Template
+Vignettes are Quarto (`.qmd`) files committed to the `vignettes/` folder on your group's branch. See the [Group Analysis Scripts](../analysis/index.qmd) page for first-time setup and how to work with branches.
+
+### Create your vignette file
+
+Add a new `.qmd` file to the `vignettes/` folder using the naming convention `vignette-groupX-topic.qmd`, e.g.:
+
+```
+vignettes/vignette-groupA-reproduction-number.qmd
+```
+
+### Vignette template
 
 ````markdown
 ---
@@ -58,3 +66,13 @@ date: today
 sessionInfo()
 ```
 ````
+
+### Push your vignette
+
+```bash
+git add vignettes/vignette-groupA-topic.qmd
+git commit -m "Add Group A vignette: reproduction number estimation"
+git push origin group-A
+```
+
+The organizers will merge group branches into `main` so vignettes appear on the site.
