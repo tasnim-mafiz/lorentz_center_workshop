@@ -27,11 +27,13 @@ git clone https://github.com/kylieainslie/lorentz_center_workshop.git
 cd lorentz_center_workshop
 ```
 
-Create and switch to your group's branch (replace `A` with your group letter):
+Switch to your group's branch — replace `A` with your group letter (`A`, `B`, `C`, or `D`):
 
 ```bash
-git checkout -b group-A
+git checkout group-A
 ```
+
+The four branches (`group-A`, `group-B`, `group-C`, `group-D`) already exist on GitHub. Do not create a new branch.
 
 ### Adding your scripts
 
