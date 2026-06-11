@@ -5,17 +5,25 @@ page-layout: full
 toc: false
 ---
 
-::: {.hero-banner}
 **15 – 19 June 2026 &nbsp;·&nbsp; Lorentz Center @lambda, Leiden, the Netherlands**
 
 *Part of the NIAS-Lorentz Program*
-:::
 
 ## About the Workshop
 
 Survival analysis (SA) and infectious disease modelling (IDM) are two disciplines that frequently tackle similar scientific problems—time-to-event outcomes, heterogeneity in populations, and the effects of interventions—yet they do so with largely separate methodological frameworks. This workshop brings together researchers from both communities to make these (dis)connections explicit, learn from one another, and develop shared tools for cross-disciplinary analysis.
 
-Over five days, participants will work in small mixed groups on two shared case studies using realistic simulated epidemic data, and collectively produce vignettes, code examples, and a "Ten Simple Rules" guide for SA–IDM integration. See the [Programme](programme.qmd) for the full schedule.
+Over five days, participants will work in small mixed groups on a shared simulated epidemic dataset and collectively produce vignettes, code examples, and a "Ten Simple Rules" guide for SA–IDM integration.
+
+## What's on This Site
+
+| Page | What you'll find |
+|------|-----------------|
+| [Programme](programme.qmd) | Full daily schedule for all five days |
+| [Preparation](preparation.qmd) | Pre-course reading, R software setup, and case study data |
+| [Case Study](case-studies.qmd) | Description of the four group questions (A–D) and the downloadable case study document |
+| [Materials](day1.qmd) | Slides and code shared each day, plus workshop vignettes |
+| [Organizers](organizers.qmd) | Scientific organizers and their affiliations |
 
 ## Scientific Organizers
 
