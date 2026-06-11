@@ -19,7 +19,9 @@ website:
         href: index.qmd
       - text: "Programme"
         href: programme.qmd
-      - text: "Case Studies"
+      - text: "Preparation"
+        href: preparation.qmd
+      - text: "Case Study"
         href: case-studies.qmd
       - text: "Materials"
         menu:
@@ -33,10 +35,9 @@ website:
             href: day4.qmd
           - text: "Day 5: Consolidation & Future Directions"
             href: day5.qmd
-      - text: "Vignettes"
-        href: vignettes/index.qmd
-      - text: "Before You Arrive"
-        href: before-you-arrive.qmd
+          - text: "---"
+          - text: "Vignettes"
+            href: vignettes/index.qmd
       - text: "Organizers"
         href: organizers.qmd
     right:
