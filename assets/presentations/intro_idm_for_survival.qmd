@@ -52,52 +52,61 @@ sir <- function(t, y, p) {
 }
 ```
 
-## The situation
+## What is infectious disease modelling?
 
 :::: {.columns}
-::: {.column width="60%"}
-It's Monday morning. A new respiratory illness has been reported:
+::: {.column width="55%"}
+> The quantitative study of how infectious diseases move through populations.
 
-- **112 cases** last week
-- **847 cases** this week
-
-Hospitals want to know how many beds to prepare.
-The government wants to know whether to close schools.
-The press wants to know if this will get worse.
-
-**You have one week of data. What do you do?**
+::: {.fragment}
+Mathematical and statistical models of:
 :::
-::: {.column width="40%"}
+
+::: {.incremental}
+- **states** an individual can be in — susceptible, infectious, recovered, …
+- **transitions** between those states
+- **rates** at which those transitions happen, and how to infer them from data
+:::
+
+::: {.fragment}
+The unit of analysis is a *population*, not a single patient.
+:::
+:::
+::: {.column width="45%"}
 ```{r}
-df <- tibble(week = factor(c("last week", "this week"), levels = c("last week", "this week")),
-             cases = c(112, 847))
-ggplot(df, aes(week, cases, fill = week)) +
-  geom_col(width = 0.5, show.legend = FALSE) +
-  geom_text(aes(label = scales::comma(cases)), vjust = -0.4,
-            fontface = "bold", size = 5) +
-  scale_fill_manual(values = c("#1f77b4", "#d62728")) +
-  scale_y_continuous(limits = c(0, 1000)) +
-  labs(x = NULL, y = "reported cases") +
-  theme(axis.text.x = element_text(size = 13, face = "bold"))
+out_intro <- as.data.frame(ode(c(S = 0.999, I = 0.001, R = 0),
+                               seq(0, 120, 0.5), sir,
+                               parms = c(beta = 0.4, gamma = 0.15, N = 1)))
+out_intro |>
+  pivot_longer(-time, names_to = "state") |>
+  mutate(state = factor(state, levels = c("S", "I", "R"))) |>
+  ggplot(aes(time, value, colour = state)) +
+  geom_line(linewidth = 1.6) +
+  scale_colour_manual(values = pal,
+                      labels = c(S = "Susceptible", I = "Infectious", R = "Recovered")) +
+  scale_y_continuous(labels = scales::percent) +
+  labs(x = "day", y = "fraction of population", colour = NULL,
+       title = "An outbreak, abstracted") +
+  theme(legend.position = "bottom")
 ```
 :::
 ::::
 
-## Three questions every epidemiologist faces
+## What can IDM help us answer?
 
 ::: {.incremental}
 1. **Describe** — What is the epidemic doing right now?
-   *How many people are infected? Is it growing or shrinking?*
+   *How fast is it growing? How many people have been infected?*
 
-2. **Predict** — What will it do next?
-   *How many hospitalisations next month? When will it peak?*
+2. **Predict** — What will happen next?
+   *When will the outbreak peak? How many hospitalisations next month?*
 
 3. **Decide** — What should we do about it?
-   *Do school closures help? How many people need to be vaccinated?*
+   *Will school closures slow transmission? How many people need to be vaccinated to stop spread?*
 :::
 
 ::: {.fragment}
-> All three require a **model of how infection spreads through a population**.
+All three require a **model of how infection moves through a population**.
 :::
 
 ## Let's build one from scratch
@@ -170,7 +179,7 @@ flowchart LR
 ::::
 
 ::: {.fragment}
-The SIR model **is** a multistate model. Same structure. Same mathematics. Different vocabulary.
+The SIR model **is** a multistate model.
 :::
 
 ## But there is one critical difference
@@ -223,9 +232,9 @@ As $I(t)$ grows, your hazard grows. As $I(t)$ falls, your hazard falls.
 ## The SIR equations
 
 :::: {.columns}
-::: {.column width="50%"}
+::: {.column width="50%" style="display:flex; align-items:center; justify-content:center;"}
 ```{mermaid}
-%%| fig-width: 6
+%%| fig-width: 7
 flowchart LR
   S(["<b>S</b>"]):::s -->|"β · I/N"| I(["<b>I</b>"]):::i
   I -->|"γ"| R(["<b>R</b>"]):::r
@@ -389,6 +398,43 @@ ggplot(out, aes(time, Rt)) +
 ```
 
 The epidemic turns when $R_t$ crosses 1 — the point at which $S(t)/N = 1/R_0$.
+
+::: {.fragment}
+**Herd immunity threshold:** the fraction of the population that must be immune to push $R_t$ permanently below 1:
+
+$$p_c = 1 - \frac{1}{R_0}$$
+
+For $R_0 = 2.7$: $p_c \approx 63\%$. Once this fraction is immune (via infection or vaccination), each case generates fewer than one new case on average.
+:::
+
+## Controlling spread: interventions and vaccination
+
+Two ways to push $R_t$ below 1:
+
+:::: {.columns}
+::: {.column width="50%"}
+**Reduce transmission — lower β**
+
+Non-pharmaceutical interventions (NPIs): masks, distancing, school and workplace closures.
+
+$$R_t \downarrow \text{ because } \beta \downarrow$$
+
+The transmission rate drops; the shape of $R_t$ over time reflects when interventions are imposed and lifted.
+:::
+::: {.column width="50%"}
+**Reduce susceptibles — shrink S**
+
+Vaccination moves individuals out of S before exposure. In the model, vaccinated individuals transition to a protected state V.
+
+$$R_t = R_0 \cdot \frac{S(t)}{N} \downarrow \text{ because } S \downarrow$$
+
+VE determines how completely vaccination removes individuals from the susceptible pool.
+:::
+::::
+
+::: {.fragment}
+In the case study: **lockdown at day 20** (β reduced) · **exit at day 35** · **vaccination from day 45** (S depleted).
+:::
 
 ## The generation interval
 
@@ -567,6 +613,46 @@ ggplot() +
 | Doubly interval-censored | Incubation period estimation |
 | Time-varying hazard ratio | Vaccine effectiveness $VE(t)$ |
 | Excess hazard | Excess mortality |
+
+## From compartments to individuals
+
+SIR/SEIR models track **aggregate counts**. The case study uses an **individual-based model (IBM)** — HERMES — which simulates each person explicitly.
+
+:::: {.columns}
+::: {.column width="50%"}
+**Compartmental ODE model**
+
+- Tracks counts: $S(t)$, $I(t)$, $R(t)$
+- Continuous, deterministic
+- Output: epidemic curves
+
+```
+day  S       I      R
+0    999000  1000   0
+1    998100  1780   120
+...
+```
+:::
+::: {.column width="50%"}
+**Individual-based model**
+
+- Simulates each of 1,000,000 people
+- Stochastic, discrete-time
+- Output: individual event times
+
+```
+id  t_infected  t_hosp  t_vacc  t_death
+1   14          —       32      —
+2   —           —       31      —
+3   8           12      —       19
+...
+```
+:::
+::::
+
+::: {.fragment}
+The IBM output **looks like a survival dataset** — individual time-to-event records with censoring, competing risks, and time-varying exposures. Your SA toolkit applies directly.
+:::
 
 # The data challenges {background-color="#d62728" style="color:white;"}
 
