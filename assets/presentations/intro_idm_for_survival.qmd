@@ -11,14 +11,14 @@ format:
     chalkboard: true
     transition: slide
     fig-align: center
-    fig-width: 8
-    fig-height: 4.2
+    fig-width: 7
+    fig-height: 3.4
     code-fold: false
     code-line-numbers: false
-    smaller: false
+    smaller: true
     width: 1280
     height: 720
-    margin: 0.06
+    margin: 0.04
 knitr:
   opts_chunk:
     echo: false
@@ -26,6 +26,8 @@ knitr:
     warning: false
     dev: "svglite"
     fig.align: "center"
+    fig.height: 3.4
+    fig.width: 7
 ---
 
 ```{r setup}
@@ -36,365 +38,10 @@ suppressPackageStartupMessages({
   library(tidyr)
   library(deSolve)
 })
-theme_set(theme_minimal(base_size = 16) +
+theme_set(theme_minimal(base_size = 13) +
   theme(panel.grid.minor = element_blank(),
         plot.title = element_text(face = "bold")))
 pal <- c(S = "#1f77b4", E = "#9467bd", I = "#d62728", R = "#2ca02c", D = "#7f7f7f")
-```
-
-## What is infectious disease modelling? {.smaller}
-
-:::: {.columns}
-::: {.column width="55%"}
-> The quantitative study of how infectious diseases move through populations.
-
-Mathematical and statistical models of:
-
-- **states** an individual can be in — susceptible, infectious, recovered, …
-- **transitions** between those states
-- **inference** of the underlying rates from incomplete surveillance data
-
-The unit of analysis is a *population*, not a single patient.
-:::
-::: {.column width="45%"}
-```{r}
-#| fig-height: 4.7
-sir_intro <- function(t, y, p) {
-  with(as.list(c(y, p)), {
-    dS <- -beta * S * I / N
-    dI <-  beta * S * I / N - gamma * I
-    dR <-  gamma * I
-    list(c(dS, dI, dR))
-  })
-}
-out <- as.data.frame(ode(c(S = 0.999, I = 0.001, R = 0),
-                         seq(0, 120, 0.5), sir_intro,
-                         parms = c(beta = 0.4, gamma = 0.15, N = 1)))
-out |>
-  pivot_longer(-time, names_to = "state") |>
-  ggplot(aes(time, value, colour = state)) +
-  geom_line(linewidth = 1.6) +
-  scale_colour_manual(values = pal) +
-  annotate("text", x = 40, y = 0.32, label = "hidden states\n(what we model)",
-           size = 4.2, fontface = "italic", colour = "grey25") +
-  annotate("curve", x = 38, y = 0.27, xend = 32, yend = 0.18,
-           arrow = arrow(length = unit(0.18, "cm")),
-           curvature = 0.25, colour = "grey25") +
-  labs(x = "day", y = "fraction of population",
-       colour = NULL, title = "An outbreak, abstracted") +
-  theme(legend.position = "bottom")
-```
-:::
-::::
-
-## What does it try to do? {.smaller}
-
-```{mermaid}
-%%| fig-width: 11
-flowchart LR
-  A["<b>Describe</b><br/>What is the epidemic<br/>doing right now?<br/><br/><i>estimate FoI, R<sub>t</sub>,<br/>attack rate, IFR</i>"]:::desc
-  B["<b>Predict</b><br/>What will it do next?<br/><br/><i>forecast cases,<br/>hospitalisations, deaths</i>"]:::pred
-  C["<b>Decide</b><br/>What should we<br/>do about it?<br/><br/><i>evaluate NPIs,<br/>vaccination, quarantine</i>"]:::dec
-  classDef desc fill:#cfe2f3,stroke:#1f77b4,color:#0b3d66,stroke-width:2px
-  classDef pred fill:#fff2cc,stroke:#b58900,color:#5a4500,stroke-width:2px
-  classDef dec  fill:#d9f1d9,stroke:#2ca02c,color:#1b4a1b,stroke-width:2px
-```
-
-::: {.fragment .fade-in}
-All three answered by **inferring rates from incomplete data** — the survival analyst's daily work.
-:::
-
-## How is that similar to survival analysis? {.smaller}
-
-:::: {.columns}
-::: {.column width="55%"}
-**Both are time-to-event sciences.** They share the central object — the **hazard function** — and almost the entire toolkit:
-
-| Survival analysis | ID modelling |
-|---|---|
-| Hazard $h(t)$ | Force of infection $\lambda(t)$ |
-| $S(t) = e^{-\int h}$ | Susceptible fraction $= e^{-\int \lambda}$ |
-| Multistate models | SIR / SEIR compartments |
-| Sojourn times | Latent / infectious periods |
-| Competing risks | Recovery vs death |
-| Frailty | Heterogeneous susceptibility |
-| Right-censoring | Reporting delay |
-
-::: {.fragment .fade-in}
-> Same mathematics, two communities — separated mostly by vocabulary.
-:::
-:::
-::: {.column width="45%"}
-```{r}
-#| fig-height: 4.7
-t <- seq(0, 10, by = 0.05)
-df <- tibble(t, value = exp(-0.25 * t))
-ggplot(df, aes(t, value)) +
-  geom_line(linewidth = 1.8, colour = "black") +
-  annotate("text", x = 1.4, y = 0.85,
-           label = "S(t) — survival",
-           hjust = 0, colour = "#1f77b4", size = 5.5, fontface = "bold") +
-  annotate("curve", x = 1.3, y = 0.85, xend = 0.6, yend = 0.86,
-           arrow = arrow(length = unit(0.18, "cm")),
-           curvature = -0.2, colour = "#1f77b4") +
-  annotate("text", x = 4.5, y = 0.45,
-           label = "S(t) — susceptible fraction",
-           hjust = 0, colour = "#d62728", size = 5.5, fontface = "bold") +
-  annotate("curve", x = 4.4, y = 0.45, xend = 3.8, yend = 0.39,
-           arrow = arrow(length = unit(0.18, "cm")),
-           curvature = -0.2, colour = "#d62728") +
-  scale_y_continuous(limits = c(0, 1)) +
-  labs(x = "time", y = NULL,
-       title = "One curve, two names")
-```
-:::
-::::
-
-## How is it different?
-
-Five twists. **One per section.**
-
-::: {.incremental}
-1. **The hazard is endogenous.** It depends on $I(t)$.   ◂ § 1
-2. **Compartments couple individuals.** Multistate with feedback.   ◂ § 2
-3. **The population sets the clock.** $R_0$, $R_t$, final size.   ◂ § 3
-4. **We see only fragments.** Censored, truncated, delayed data.   ◂ § 4
-5. **Interventions act on populations.** Serology, vaccination, mortality.   ◂ § 5
-:::
-
-::: {.fragment .fade-in}
-> **Same math, applied to a population with feedback.**
-:::
-
-::: {.notes}
-Each twist gets one section. By the end, the audience should be able to tell you which twist they're inside.
-:::
-
-## Roadmap
-
-```{mermaid}
-%%| fig-width: 10
-flowchart LR
-  B1["<b>§ 1 — Twist 1</b><br/>endogenous hazard<br/><i>force of infection</i>"]:::bridge
-  B2["<b>§ 2 — Twist 2</b><br/>coupled compartments<br/><i>SIR / SEIR</i>"]:::bridge
-  B3["<b>§ 3 — Twist 3</b><br/>population clock<br/><i>R<sub>0</sub>, R<sub>t</sub>, renewal</i>"]:::bridge
-  B4["<b>§ 4 — Twist 4</b><br/>fragmented data<br/><i>censoring &amp; truncation</i>"]:::bridge
-  B5["<b>§ 5 — Twist 5</b><br/>population interventions<br/><i>case-study toolkit</i>"]:::bridge
-  B1 --> B2 --> B3 --> B4 --> B5
-  classDef bridge fill:#fff2cc,stroke:#b58900,color:#5a4500
-```
-
-# Twist 1 — The hazard is endogenous {background-color="#1f77b4" style="color:white;"}
-
-::: {style="color:white;"}
-**§ 1.** Force of infection — the hazard $\lambda(t)$ that depends on what everyone else is doing.
-:::
-
-## The hazard, refreshed
-
-:::: {.columns}
-::: {.column width="55%"}
-$$h(t) = \lim_{\Delta t \downarrow 0} \frac{\Pr(t \le T < t+\Delta t \mid T \ge t)}{\Delta t}$$
-
-$$S(t) = \exp\!\left\{ -\!\int_0^t h(u)\, du \right\}$$
-
-A single object — the hazard — generates the survival curve, the density, the cumulative hazard.
-:::
-::: {.column width="45%"}
-```{r}
-#| fig-height: 4.7
-t <- seq(0, 8, by = 0.02)
-h <- 0.15 + 0.06 * t
-H <- cumsum(h) * 0.02
-S <- exp(-H)
-df <- tibble(t, hazard = h, survival = S) |>
-  pivot_longer(-t)
-ggplot(df, aes(t, value)) +
-  geom_line(linewidth = 1.4, colour = "#1f77b4") +
-  facet_wrap(~name, ncol = 1, scales = "free_y") +
-  labs(x = "time", y = NULL)
-```
-:::
-::::
-
-## The force of infection
-
-:::: {.columns}
-::: {.column width="55%"}
-Let $S(t)$ = fraction of the population still susceptible.
-
-$$\lambda(t) = -\frac{1}{S(t)} \frac{dS(t)}{dt}$$
-
-$$S(t) = \exp\!\left\{ -\!\int_0^t \lambda(u)\, du \right\}$$
-
-Identical to the hazard — except the "subjects" are people who have not yet been infected, and $\lambda(t)$ is *endogenous*.
-
-::: {.callout-note appearance="minimal"}
-Under **homogeneous mixing**, the population FoI equals the per-susceptible hazard. Heterogeneity breaks this — see the frailty slide.
-:::
-:::
-::: {.column width="45%"}
-```{r}
-#| fig-height: 4.7
-# constant force of infection lambda = 0.25
-t <- seq(0, 12, 0.05)
-S <- exp(-0.25 * t)
-lambda <- rep(0.25, length(t))
-df <- tibble(t, susceptible = S, lambda = lambda) |>
-  pivot_longer(-t)
-ggplot(df, aes(t, value)) +
-  geom_line(linewidth = 1.4, colour = "#d62728") +
-  facet_wrap(~name, ncol = 1, scales = "free_y",
-             labeller = as_labeller(c(susceptible = "S(t)  susceptible fraction",
-                                      lambda = "lambda(t)  force of infection"))) +
-  labs(x = "time", y = NULL)
-```
-:::
-::::
-
-## A first historic anchor: Bernoulli, 1760
-
-:::: {.columns}
-::: {.column width="55%"}
-Daniel Bernoulli wrote down a survival model for smallpox **two centuries before Cox**.
-
-::: {.incremental}
-- Two competing hazards
-- $\lambda$ : *catching* smallpox
-- $\mu(a)$ : dying from anything else at age $a$
-- Life expectancy *with* and *without* smallpox
-- A competing-risks survival model — first one ever written
-:::
-:::
-::: {.column width="45%"}
-```{r}
-#| fig-height: 4.7
-a <- seq(0, 80, 0.5)
-lambda_sp <- 0.0125
-mu       <- 0.003 + 0.0008 * a^1.05
-S_obs   <- exp(-cumsum(lambda_sp + mu) * 0.5)
-S_no_sp <- exp(-cumsum(mu) * 0.5)
-gain <- round(sum(S_no_sp - S_obs) * 0.5, 1)  # area = years gained
-df <- tibble(a, observed = S_obs, eliminated = S_no_sp)
-ggplot(df, aes(a)) +
-  geom_ribbon(aes(ymin = observed, ymax = eliminated),
-              fill = "#fff2cc", alpha = 0.9) +
-  geom_line(aes(y = observed),    colour = "#d62728", linewidth = 1.5) +
-  geom_line(aes(y = eliminated),  colour = "#1f77b4", linewidth = 1.5) +
-  annotate("text", x = 55, y = 0.55,
-           label = paste0("life-years gained\nper person ≈ ", gain),
-           colour = "#5a4500", size = 4.5, fontface = "bold") +
-  annotate("text", x = 18, y = 0.97, label = "if smallpox eliminated",
-           hjust = 0, colour = "#1f77b4", size = 4.5, fontface = "bold") +
-  annotate("text", x = 18, y = 0.78, label = "observed",
-           hjust = 0, colour = "#d62728", size = 4.5, fontface = "bold") +
-  labs(x = "age (years)", y = "S(a)",
-       title = "Bernoulli's counterfactual, redrawn")
-```
-:::
-::::
-
-## Heterogeneity = frailty {.smaller}
-
-:::: {.columns}
-::: {.column width="50%"}
-**Cox model:**
-$$h_i(t) = h_0(t)\, e^{\beta'x_i}$$
-
-**Mixed-effects / frailty:**
-$$h_i(t) = h_0(t)\, Z_i,\quad Z_i \sim \pi(z)$$
-
-**Heterogeneous FoI:**
-$$\lambda_i(t) = c_i\, \beta\, \frac{I(t)}{N}$$
-
-The $c_i$ play the role of frailties.
-:::
-::: {.column width="50%"}
-```{r}
-#| fig-height: 4.7
-set.seed(1)
-t <- seq(0, 12, 0.05)
-# population FoI = 0.25, but 3 sub-groups with multipliers
-groups <- tibble(g = c("low (c=0.4)", "avg (c=1)", "high (c=2.5)"),
-                 c = c(0.4, 1, 2.5))
-df <- expand.grid(t = t, g = groups$g) |>
-  left_join(groups, by = "g") |>
-  mutate(S = exp(-0.25 * c * t))
-pop_avg <- df |> group_by(t) |>
-  summarise(S = mean(S), .groups = "drop") |> mutate(g = "population mean")
-ggplot() +
-  geom_line(data = df, aes(t, S, colour = g), linewidth = 1.2) +
-  geom_line(data = pop_avg, aes(t, S), colour = "black", linewidth = 1.6, linetype = "22") +
-  scale_colour_brewer(palette = "Set1") +
-  labs(x = "time", y = "S(t)", colour = NULL,
-       title = "High-frailty subjects deplete first",
-       subtitle = "Black: equal-weight mixture. Apparent FoI declines without any intervention.") +
-  theme(legend.position = "bottom")
-```
-:::
-::::
-
-::: {.fragment}
-The "selection of the susceptibles" is the same artefact as frailty-induced declining hazards in survival data.
-:::
-
-# Twist 2 — Compartments couple individuals {background-color="#2ca02c" style="color:white;"}
-
-::: {style="color:white;"}
-**§ 2.** Multistate models with feedback — SIR, SEIR, competing risks.
-:::
-
-## SIR is a multistate model
-
-```{mermaid}
-%%| fig-width: 9
-flowchart LR
-  S((S)) -->|"&lambda;(t) = &beta; I/N"| I((I))
-  I -->|"&gamma;"| R((R))
-  classDef s fill:#cfe2f3,stroke:#1f77b4,stroke-width:2px
-  classDef i fill:#fde2e2,stroke:#d62728,stroke-width:2px
-  classDef r fill:#d9f1d9,stroke:#2ca02c,stroke-width:2px
-  class S s
-  class I i
-  class R r
-```
-
-:::: {.columns}
-::: {.column width="50%"}
-**Multistate-model view**
-
-- States: $\{S, I, R\}$
-- Transition intensities: $q_{SI}(t),\ q_{IR}$
-- Aalen / Andersen–Gill machinery applies *— with the twist on the next slide*
-:::
-::: {.column width="50%"}
-**Epidemiologist's view**
-
-- Compartments
-- Rate equations
-- "Mass action" coupling: $q_{SI}(t)$ depends on $I(t)$
-:::
-::::
-
-## SIR as ODEs (Kermack–McKendrick, 1927)
-
-:::: {.columns}
-::: {.column width="48%"}
-$$
-\begin{aligned}
-\frac{dS}{dt} &= -\beta\, \tfrac{SI}{N} \\
-\frac{dI}{dt} &= +\beta\, \tfrac{SI}{N} - \gamma I \\
-\frac{dR}{dt} &= +\gamma I
-\end{aligned}
-$$
-
-The same multistate diagram, written as a system of ODEs.
-
-A landmark 1927 paper that shaped a century of epidemiology.
-:::
-::: {.column width="52%"}
-```{r}
-#| fig-height: 4.7
 sir <- function(t, y, p) {
   with(as.list(c(y, p)), {
     dS <- -beta * S * I / N
@@ -403,653 +50,411 @@ sir <- function(t, y, p) {
     list(c(dS, dI, dR))
   })
 }
-N <- 1
-y0 <- c(S = 0.999, I = 0.001, R = 0)
-out <- as.data.frame(ode(y0, seq(0, 120, 0.5), sir,
-                         parms = c(beta = 0.4, gamma = 0.15, N = N)))
-out |>
-  pivot_longer(-time, names_to = "state") |>
-  ggplot(aes(time, value, colour = state)) +
-  geom_line(linewidth = 1.6) +
-  scale_colour_manual(values = pal) +
-  labs(x = "day", y = "fraction of population",
-       title = "SIR epidemic curve",
-       subtitle = "beta = 0.4, gamma = 0.15, R0 = 2.67",
-       colour = NULL) +
-  theme(legend.position = "bottom")
+```
+
+## The situation
+
+:::: {.columns}
+::: {.column width="60%"}
+It's Monday morning. A new respiratory illness has been reported:
+
+- **112 cases** last week
+- **847 cases** this week
+
+Hospitals want to know how many beds to prepare.
+The government wants to know whether to close schools.
+The press wants to know if this will get worse.
+
+**You have one week of data. What do you do?**
+:::
+::: {.column width="40%"}
+```{r}
+df <- tibble(week = c("last week", "this week"),
+             cases = c(112, 847),
+             week = factor(week, levels = c("last week", "this week")))
+ggplot(df, aes(week, cases, fill = week)) +
+  geom_col(width = 0.5, show.legend = FALSE) +
+  geom_text(aes(label = scales::comma(cases)), vjust = -0.4,
+            fontface = "bold", size = 5) +
+  scale_fill_manual(values = c("#1f77b4", "#d62728")) +
+  scale_y_continuous(limits = c(0, 1000)) +
+  labs(x = NULL, y = "reported cases") +
+  theme(axis.text.x = element_text(size = 13, face = "bold"))
 ```
 :::
 ::::
 
-## What makes it different from survival? {.smaller}
+## Three questions every epidemiologist faces
+
+::: {.incremental}
+1. **Describe** — What is the epidemic doing right now?
+   *How many people are infected? Is it growing or shrinking?*
+
+2. **Predict** — What will it do next?
+   *How many hospitalisations next month? When will it peak?*
+
+3. **Decide** — What should we do about it?
+   *Do school closures help? How many people need to be vaccinated?*
+:::
+
+::: {.fragment}
+> All three require a **model of how infection spreads through a population**.
+:::
+
+## Let's build one from scratch
+
+We want to describe what happens to people during an epidemic.
+
+::: {.fragment}
+**Step 1: What states can a person be in?**
+:::
+
+::: {.fragment}
+- **S**usceptible — not yet infected, could become infected
+- **I**nfectious — currently infected and able to transmit
+- **R**ecovered — immune, no longer at risk
+:::
+
+::: {.fragment}
+That's it. Three states. Now: how do people move between them?
+:::
+
+## The SIR model
+
+```{mermaid}
+%%| fig-width: 9
+flowchart LR
+  S(["<b>S</b>usceptible\n<i>at risk</i>"]):::s -->|"becomes infected"| I(["<b>I</b>nfectious\n<i>can transmit</i>"]):::i
+  I -->|"recovers"| R(["<b>R</b>ecovered\n<i>immune</i>"]):::r
+  classDef s fill:#cfe2f3,stroke:#1f77b4,stroke-width:2px,color:#0b3d66
+  classDef i fill:#fde2e2,stroke:#d62728,stroke-width:2px,color:#5a0c0c
+  classDef r fill:#d9f1d9,stroke:#2ca02c,stroke-width:2px,color:#1b4a1b
+```
+
+::: {.fragment}
+Two transitions. Two rates. Each rate is a **hazard**.
+:::
+
+::: {.fragment}
+This diagram should look familiar.
+:::
+
+## You have seen this before
 
 :::: {.columns}
 ::: {.column width="50%"}
 **Survival analysis**
 
-$$h(t) \text{ is exogenous}$$
-
-The risk set shrinks because subjects experience the event.
+```{mermaid}
+%%| fig-width: 4.5
+flowchart LR
+  H[Healthy]:::s -->|"h(t)"| D[Diseased]:::i
+  D -->|"μ(t)"| E[Event / Death]:::r
+  classDef s fill:#cfe2f3,stroke:#1f77b4,stroke-width:2px
+  classDef i fill:#fde2e2,stroke:#d62728,stroke-width:2px
+  classDef r fill:#d9f1d9,stroke:#2ca02c,stroke-width:2px
+```
 :::
 ::: {.column width="50%"}
-**Epidemic models**
+**Infectious disease modelling**
 
-$$\lambda(t) = \beta\, \frac{I(t)}{N}\ \text{is endogenous}$$
-
-The hazard rises and then falls because $I(t)$ does — a feedback loop.
+```{mermaid}
+%%| fig-width: 4.5
+flowchart LR
+  S[Susceptible]:::s -->|"λ(t)"| I[Infectious]:::i
+  I -->|"γ"| R[Recovered]:::r
+  classDef s fill:#cfe2f3,stroke:#1f77b4,stroke-width:2px
+  classDef i fill:#fde2e2,stroke:#d62728,stroke-width:2px
+  classDef r fill:#d9f1d9,stroke:#2ca02c,stroke-width:2px
+```
 :::
 ::::
 
-```{mermaid}
-%%| fig-width: 9
-flowchart LR
-  X1["I(t)"] -->|"raises"| L1["&lambda;(t)"]
-  L1 -->|"depletes"| S1["S(t)"]
-  S1 -->|"feeds new I"| X1
-  classDef k fill:#fff2cc,stroke:#b58900,stroke-width:2px
-  class X1,L1,S1 k
-```
-
-::: {.fragment .fade-in}
-**Why naive Cox regression on epidemic data is dangerous:**
-individuals' hazards are *correlated* through shared $I(t)$. Independence breaks, effective sample size shrinks, and covariate effects can be confounded with epidemic timing.
+::: {.fragment}
+The SIR model **is** a multistate model. Same structure. Same mathematics. Different vocabulary.
 :::
 
-## Sojourn times = waiting-time distributions
+## But there is one critical difference
 
 :::: {.columns}
 ::: {.column width="50%"}
-The classic SIR assumes
-$$\text{Time in I} \sim \text{Exp}(\gamma).$$
+**In a survival study**
 
-Constant transition intensity ⇒ memoryless ⇒ **Markov**.
+The hazard $h(t)$ is determined by:
 
-Real infectious periods are usually **gamma-shaped**.
+- the patient's age, treatment, covariates
+- external factors
 
-The fix: chain $k$ exponential sub-stages — the "method of stages".
-This is exactly a phase-type distribution / semi-Markov multistate model.
+It does **not** depend on what other patients are doing.
 :::
 ::: {.column width="50%"}
-```{r}
-#| fig-height: 4.7
-t <- seq(0, 20, 0.05)
-df <- bind_rows(
-  tibble(t, density = dexp(t, rate = 1/6),     dist = "Exponential (k=1)"),
-  tibble(t, density = dgamma(t, shape = 3, rate = 3/6), dist = "Gamma (k=3)"),
-  tibble(t, density = dgamma(t, shape = 6, rate = 6/6), dist = "Gamma (k=6)")
-)
-ggplot(df, aes(t, density, colour = dist)) +
-  geom_line(linewidth = 1.4) +
-  scale_colour_brewer(palette = "Set1") +
-  labs(x = "days infectious", y = "density", colour = NULL,
-       title = "Same mean, very different shapes") +
-  theme(legend.position = "bottom")
-```
+::: {.fragment}
+**In an epidemic**
+
+The hazard — the **force of infection** $\lambda(t)$ — is:
+
+$$\lambda(t) = \beta \cdot \frac{I(t)}{N}$$
+
+It depends on **how many people are infectious right now**.
+
+Your risk today is created by the epidemic itself.
+:::
 :::
 ::::
 
-## SEIR: an extra latent state {.smaller}
+::: {.fragment}
+> The hazard is **endogenous**. It rises and falls with $I(t)$.
+:::
+
+## What does β · I(t)/N mean?
+
+$$\lambda(t) = \underbrace{\beta}_{\text{transmission rate}} \cdot \underbrace{\frac{I(t)}{N}}_{\text{probability your contact is infectious}}$$
+
+::: {.incremental}
+- $\beta$ = (contacts per day) × (probability of transmission per contact)
+- $I(t)/N$ = fraction of the population that is currently infectious
+- $\lambda(t)$ = your personal hazard of infection on day $t$
+:::
+
+::: {.fragment}
+As $I(t)$ grows, your hazard grows. As $I(t)$ falls, your hazard falls.
+*This feedback loop is what makes epidemic dynamics different.*
+:::
+
+## The SIR equations
+
+Putting the transition rates together:
+
+$$\frac{dS}{dt} = -\underbrace{\beta \frac{I}{N}}_{\lambda(t)} \cdot S \qquad \frac{dI}{dt} = \beta \frac{SI}{N} - \gamma I \qquad \frac{dR}{dt} = \gamma I$$
+
+::: {.incremental}
+- $S$ is depleted at rate $\lambda(t) \cdot S$ — susceptibles getting infected
+- $I$ grows from new infections, shrinks as people recover at rate $\gamma$
+- The sojourn time in $I$ is $\text{Exp}(\gamma)$, with mean $1/\gamma$ days
+:::
+
+::: {.fragment}
+These are just differential equations describing the multistate diagram from two slides ago.
+:::
+
+## What an epidemic looks like
+
+```{r}
+out <- as.data.frame(ode(c(S = 0.999, I = 0.001, R = 0),
+                         seq(0, 120, 0.5), sir,
+                         parms = c(beta = 0.4, gamma = 0.15, N = 1)))
+out |>
+  pivot_longer(-time, names_to = "state") |>
+  mutate(state = factor(state, levels = c("S", "I", "R"))) |>
+  ggplot(aes(time, value, colour = state)) +
+  geom_line(linewidth = 1.6) +
+  scale_colour_manual(values = pal,
+                      labels = c(S = "Susceptible", I = "Infectious", R = "Recovered")) +
+  scale_y_continuous(labels = scales::percent) +
+  labs(x = "day", y = "fraction of population", colour = NULL,
+       title = "A single SIR epidemic (β = 0.4, γ = 0.15)") +
+  theme(legend.position = "bottom")
+```
+
+::: {.fragment}
+The epidemic rises, peaks, and falls — all driven by the depletion of susceptibles.
+:::
+
+# How fast does it spread? {background-color="#1f77b4" style="color:white;"}
+
+## One number summarises it
+
+**How many people does one infectious person infect, on average, before they recover?**
+
+::: {.fragment}
+That number is $R_0$ — the **basic reproduction number**.
+:::
+
+:::: {.columns}
+::: {.column width="50%"}
+::: {.fragment}
+```{mermaid}
+%%| fig-width: 5
+flowchart TB
+  A(("1")):::seed --> B1(("2")):::gen1
+  A --> B2(("2")):::gen1
+  A --> B3(("2")):::gen1
+  B1 --> C1(("3")):::gen2
+  B1 --> C2(("3")):::gen2
+  B2 --> C3(("3")):::gen2
+  B2 --> C4(("3")):::gen2
+  B3 --> C5(("3")):::gen2
+  B3 --> C6(("3")):::gen2
+  classDef seed fill:#d62728,stroke:#5a0c0c,color:white
+  classDef gen1 fill:#f7b7b7,stroke:#d62728
+  classDef gen2 fill:#fde2e2,stroke:#d62728
+```
+:::
+:::
+::: {.column width="50%"}
+::: {.incremental}
+- If $R_0 > 1$ → each case generates more than one new case → epidemic grows
+- If $R_0 < 1$ → epidemic fades out
+- If $R_0 = 1$ → endemic equilibrium
+:::
+:::
+::::
+
+## R₀ in the SIR model
+
+::: {.incremental}
+- One infectious person is in state $I$ for an average of $1/\gamma$ days
+- During that time they make contact at rate $\beta$
+- So on average they infect $\beta \times 1/\gamma$ others in a fully susceptible population
+:::
+
+::: {.fragment}
+$$R_0 = \frac{\beta}{\gamma}$$
+
+A ratio of **two survival quantities**: the transmission rate and the recovery rate.
+:::
+
+::: {.fragment}
+For the epidemic above: $R_0 = 0.4 / 0.15 \approx 2.7$. Each case generates ~2–3 secondary cases.
+:::
+
+## As the epidemic unfolds: Rₜ
+
+$R_0$ assumes a fully susceptible population. As susceptibles are depleted, the effective reproduction number $R_t$ declines:
+
+$$R_t = R_0 \cdot \frac{S(t)}{N}$$
+
+```{r}
+out <- as.data.frame(ode(c(S = 0.999, I = 0.001, R = 0),
+                         seq(0, 120, 0.5), sir,
+                         parms = c(beta = 0.4, gamma = 0.15, N = 1)))
+out$Rt <- (0.4 / 0.15) * out$S
+ggplot(out, aes(time, Rt)) +
+  geom_hline(yintercept = 1, linetype = "22", colour = "grey40") +
+  geom_line(linewidth = 1.6, colour = "#1f77b4") +
+  annotate("text", x = 85, y = 1.12, label = "Rt = 1  (epidemic turning point)",
+           colour = "grey30", size = 4, hjust = 0) +
+  labs(x = "day", y = expression(R[t]),
+       title = "Rt declines as susceptibles are depleted")
+```
+
+The epidemic turns when $R_t$ crosses 1 — the point at which $S(t)/N = 1/R_0$.
+
+# The connection to survival analysis {background-color="#2ca02c" style="color:white;"}
+
+## The hazard function, renamed
+
+:::: {.columns}
+::: {.column width="50%"}
+**Survival analysis**
+
+$$h(t) = \lim_{\Delta t \to 0} \frac{\Pr(t \le T < t+\Delta t \mid T \ge t)}{\Delta t}$$
+
+$$S(t) = \exp\!\left\{-\int_0^t h(u)\, du\right\}$$
+
+$S(t)$ = probability of not yet having the event
+:::
+::: {.column width="50%"}
+::: {.fragment}
+**Infectious disease modelling**
+
+$$\lambda(t) = \beta \cdot \frac{I(t)}{N}$$
+
+$$S(t) = \exp\!\left\{-\int_0^t \lambda(u)\, du\right\}$$
+
+$S(t)$ = fraction of the population still susceptible
+:::
+:::
+::::
+
+::: {.fragment}
+Same equation. $S(t)$ is simultaneously a survival curve and the susceptible fraction.
+:::
+
+## Adding a latent period: SEIR
+
+Many infections have an incubation period — you are infected but not yet infectious.
 
 ```{mermaid}
 %%| fig-width: 10
 flowchart LR
-  S((S)) -->|"&lambda;(t)"| E((E))
-  E -->|"&sigma;"| I((I))
-  I -->|"&gamma;"| R((R))
+  S(["S\n<i>susceptible</i>"]):::s -->|"λ(t)"| E(["E\n<i>exposed / latent</i>"]):::e
+  E -->|"σ"| I(["I\n<i>infectious</i>"]):::i
+  I -->|"γ"| R(["R\n<i>recovered</i>"]):::r
   classDef s fill:#cfe2f3,stroke:#1f77b4
   classDef e fill:#e8d8f7,stroke:#9467bd
   classDef i fill:#fde2e2,stroke:#d62728
   classDef r fill:#d9f1d9,stroke:#2ca02c
-  class S s
-  class E e
-  class I i
-  class R r
 ```
 
-:::: {.columns}
-::: {.column width="55%"}
 ::: {.incremental}
-- **E** = exposed but not yet infectious (latency)
-- Sojourn $E \to I$ : incubation period
-- Sojourn $I \to R$ : infectious period
-- Both are survival distributions you would estimate from line-list data
+- The sojourn in **E** is the incubation period — a waiting-time distribution
+- Mean sojourn = $1/\sigma$ days; Exp($\sigma$) by default
+- In the workshop case study, the underlying model is SIRVD — same idea, extra states
 :::
-:::
-::: {.column width="45%"}
-```{r}
-#| fig-height: 4.7
-seir <- function(t, y, p) {
-  with(as.list(c(y, p)), {
-    dS <- -beta * S * I / N
-    dE <-  beta * S * I / N - sigma * E
-    dI <-  sigma * E - gamma * I
-    dR <-  gamma * I
-    list(c(dS, dE, dI, dR))
-  })
-}
-N <- 1
-y0 <- c(S = 0.999, E = 0, I = 0.001, R = 0)
-out <- as.data.frame(ode(y0, seq(0, 150, 0.5), seir,
-                         parms = c(beta = 0.5, sigma = 1/4, gamma = 1/7, N = N)))
-out |>
-  pivot_longer(-time, names_to = "state") |>
-  ggplot(aes(time, value, colour = state)) +
-  geom_line(linewidth = 1.6) +
-  scale_colour_manual(values = pal) +
-  labs(x = "day", y = "fraction", colour = NULL,
-       title = "SEIR dynamics") +
-  theme(legend.position = "bottom")
-```
-:::
-::::
 
-## Competing risks: I → R vs I → D
+## Competing risks: when infection can kill
 
 ```{mermaid}
 %%| fig-width: 9
 flowchart LR
-  S((S)) -->|"&lambda;(t)"| I((I))
-  I -->|"&gamma;(1-IFR)"| R((R))
-  I -->|"&gamma; * IFR"| D((D))
+  S(["S"]):::s -->|"λ(t)"| I(["I"]):::i
+  I -->|"γ · (1 − IFR)"| R(["R  recovered"]):::r
+  I -->|"γ · IFR"| D(["D  dead"]):::d
   classDef s fill:#cfe2f3,stroke:#1f77b4
   classDef i fill:#fde2e2,stroke:#d62728
   classDef r fill:#d9f1d9,stroke:#2ca02c
-  classDef d fill:#dddddd,stroke:#444
-  class S s
-  class I i
-  class R r
-  class D d
+  classDef d fill:#eeeeee,stroke:#555
 ```
-
-::: {.fragment}
-- **Infection fatality ratio (IFR)** is just the cause-specific cumulative incidence at $\infty$.
-- Same identifiability traps as in cause-specific survival: do not confuse cause-specific hazards with subdistribution hazards.
-:::
-
-## A discrete-time cousin: Reed–Frost (1928) {.smaller}
-
-:::: {.columns}
-::: {.column width="55%"}
-::: {.incremental}
-- Time advances in *generations* (not continuously)
-- $I_{t+1} \mid S_t, I_t \sim \text{Bin}\!\left(S_t,\ 1 - (1-p)^{I_t}\right)$
-- Each susceptible avoids infection if it escapes contact with all $I_t$ infectives
-- $1 - (1-p)^{I_t}$ is the *discrete-time analogue of* $1 - e^{-\Lambda_t}$
-- Discrete survival $\Leftrightarrow$ chain-binomial epidemic
-:::
-
-::: {.fragment .fade-in}
-**Stochasticity matters most when $I_t$ is small** — early or late in an outbreak — the same regime where survival cares about ties and small risk sets.
-:::
-:::
-::: {.column width="45%"}
-```{r}
-#| fig-height: 4.7
-set.seed(7)
-N <- 1000; p <- 0.0025
-sim <- function() {
-  S <- N - 1; I <- 1
-  out <- tibble(gen = 0, S = S, I = I)
-  for (g in 1:25) {
-    new <- rbinom(1, S, 1 - (1 - p)^I)
-    S <- S - new; I <- new
-    out <- bind_rows(out, tibble(gen = g, S = S, I = I))
-    if (I == 0) break
-  }
-  out
-}
-runs <- bind_rows(lapply(1:30, function(i) sim() |> mutate(rep = i)))
-ggplot(runs, aes(gen, I, group = rep)) +
-  geom_line(alpha = 0.35, colour = "#d62728") +
-  labs(x = "generation", y = "new infections",
-       title = "30 stochastic Reed-Frost runs")
-```
-:::
-::::
-
-# Twist 3 — The population sets the clock {background-color="#9467bd" style="color:white;"}
-
-::: {style="color:white;"}
-**§ 3.** $R_0$, $R_t$, generation interval, renewal equation, final size.
-:::
-
-## R₀ — the branching factor
-
-:::: {.columns}
-::: {.column width="55%"}
-$$R_0 = \text{expected secondary cases from one infective in a fully susceptible population.}$$
-
-For the simple SIR:
-$$R_0 = \frac{\beta}{\gamma} = \underbrace{c}_{\text{contacts}} \cdot \underbrace{p}_{\text{transmission prob.}} \cdot \underbrace{D}_{\text{mean duration}}$$
-
-Each factor is something a survival analyst recognises — especially $D$, a mean sojourn time.
-:::
-::: {.column width="45%"}
-```{mermaid}
-%%| fig-width: 6
-flowchart TB
-  A((1)) --> B1((2))
-  A --> B2((2))
-  A --> B3((2))
-  B1 --> C1((3))
-  B1 --> C2((3))
-  B1 --> C3((3))
-  B2 --> C4((3))
-  B2 --> C5((3))
-  B2 --> C6((3))
-  B3 --> C7((3))
-  B3 --> C8((3))
-  B3 --> C9((3))
-```
-
-A geometric tree with branching $R_0$.
-:::
-::::
-
-## R₀ as an integral over the infectious period
-
-$$
-R_0 = \int_0^\infty \beta(\tau)\, S_I(\tau)\, d\tau
-$$
-
-:::: {.columns}
-::: {.column width="55%"}
-- $S_I(\tau)$ = probability still infectious $\tau$ after onset = a **survival function**
-- $\beta(\tau)$ = age-of-infection contact/transmission rate
-- $R_0$ = area under "infectiousness profile $\times$ survival of infectiousness"
-
-When $\beta$ is constant, this collapses to
-$$R_0 = \beta \cdot E[T_{\text{infectious}}]$$
-— the contact-transmission rate times the **expected infectious duration**, exactly what you'd write in a survival analysis.
-:::
-::: {.column width="45%"}
-```{r}
-#| fig-height: 4.7
-tau <- seq(0, 14, 0.05)
-S_I <- 1 - pgamma(tau, shape = 6, rate = 6/7)   # mean ~7d
-beta_tau <- 0.35 * dgamma(tau, shape = 4, rate = 1.2) /
-  max(dgamma(tau, shape = 4, rate = 1.2))
-df <- tibble(tau, infectiousness = beta_tau, survival = S_I,
-             product = beta_tau * S_I) |>
-  pivot_longer(-tau)
-ggplot(df, aes(tau, value, colour = name)) +
-  geom_line(linewidth = 1.4) +
-  scale_colour_brewer(palette = "Set1") +
-  labs(x = "time since infection (days)", y = NULL, colour = NULL,
-       title = "R0 = integral of beta(tau) * S_I(tau)") +
-  theme(legend.position = "bottom")
-```
-:::
-::::
-
-## Effective reproduction number Rₜ
-
-:::: {.columns}
-::: {.column width="55%"}
-$$R_t = R_0 \cdot \frac{S(t)}{N}$$
 
 ::: {.incremental}
-- Susceptibles deplete ⇒ $R_t$ falls
-- Interventions reduce $\beta$ ⇒ $R_t$ falls
-- Outbreak ends when $R_t < 1$
+- Two competing exits from $I$: recovery or death
+- The **infection fatality ratio (IFR)** is the cause-specific cumulative incidence as $t \to \infty$
+- The standard competing-risks toolkit — cause-specific hazards, Fine-Gray — applies directly
 :::
 
-Wallinga–Lipsitch identity (early phase):
-$$\frac{1}{R} = \int_0^\infty g(\tau)\, e^{-r\tau}\,d\tau$$
+## The vocabulary dictionary
 
-where $r$ is the exponential growth rate and $g(\tau)$ the generation interval — the moment generating function of a survival distribution.
-:::
-::: {.column width="45%"}
-```{r}
-#| fig-height: 4.7
-out <- as.data.frame(ode(c(S = 0.999, I = 0.001, R = 0),
-                         seq(0, 120, 0.5), sir,
-                         parms = c(beta = 0.4, gamma = 0.15, N = 1)))
-out$Rt <- (0.4/0.15) * out$S
-ggplot(out, aes(time, Rt)) +
-  geom_hline(yintercept = 1, linetype = "22") +
-  geom_line(linewidth = 1.6, colour = "#9467bd") +
-  labs(x = "day", y = expression(R[t]),
-       title = "Rt declines with susceptible depletion")
-```
-:::
-::::
+| Survival analysis | Infectious disease modelling |
+|:---|:---|
+| Hazard $h(t)$ | Force of infection $\lambda(t)$ |
+| Survival $S(t)$ | Susceptible fraction |
+| Multistate model | Compartmental model (SIR, SEIR, …) |
+| Sojourn time | Latent / infectious period |
+| Competing risks | Recovery vs death |
+| Frailty | Heterogeneous susceptibility |
+| Right-censoring | Unconfirmed infection |
+| Right-truncation | Reporting delay |
+| Doubly interval-censored | Incubation period estimation |
+| Time-varying hazard ratio | Vaccine effectiveness $VE(t)$ |
+| Excess hazard | Excess mortality |
 
-## Final-size relation & herd immunity {.smaller}
+# The data challenges {background-color="#d62728" style="color:white;"}
 
-:::: {.columns}
-::: {.column width="55%"}
-For the simple SIR, the fraction $s_\infty$ that *escapes* infection satisfies the self-consistency equation
-$$s_\infty = e^{-R_0(1 - s_\infty)}.$$
-
-A pure survival statement: it is a survival probability, expressed as the exponential of a cumulative force of infection.
-
-**Herd immunity threshold:**
-$$1 - \tfrac{1}{R_0}$$
-— the depleted-susceptible fraction at which $R_t$ first crosses 1.
-:::
-::: {.column width="45%"}
-```{r}
-#| fig-height: 4.7
-R0_grid <- seq(1.01, 6, 0.02)
-final_size <- function(R0) {
-  f <- function(s) s - exp(-R0 * (1 - s))
-  uniroot(f, c(1e-8, 1 - 1e-8))$root
-}
-df <- tibble(
-  R0 = R0_grid,
-  `attack rate (1 - s_inf)` = 1 - sapply(R0_grid, final_size),
-  `herd immunity threshold` = 1 - 1 / R0_grid
-) |> pivot_longer(-R0)
-ggplot(df, aes(R0, value, colour = name)) +
-  geom_line(linewidth = 1.6) +
-  scale_colour_manual(values = c(`attack rate (1 - s_inf)` = "#d62728",
-                                 `herd immunity threshold` = "#1f77b4")) +
-  scale_y_continuous(limits = c(0, 1), labels = scales::percent) +
-  labs(x = expression(R[0]), y = NULL, colour = NULL,
-       title = "Two consequences of R0",
-       subtitle = "Attack rate (red) overshoots the herd-immunity threshold (blue)") +
-  theme(legend.position = "bottom")
-```
-:::
-::::
-
-## The renewal equation
-
-$$
-i(t) \;=\; \int_0^\infty i(t-\tau)\, R_{t-\tau}\, g(\tau)\, d\tau
-$$
-
-:::: {.columns}
-::: {.column width="55%"}
-::: {.incremental}
-- $i(t)$ : incidence at time $t$
-- $g(\tau)$ : **generation interval** density
-- $R_{t-\tau}$ : case reproduction number (Wallinga–Teunis)
-:::
-
-This is a **convolution** — and a deconvolution problem when $R$ is unknown.
-
-It is also the integral form of the Kermack–McKendrick model — predating the ODE system in the same 1927 paper.
-
-::: {.callout-note appearance="minimal"}
-Two conventions: **case** $R_{t-\tau}$ (looks back in time, Wallinga–Teunis) and **instantaneous** $R_t$ (looks forward, Cori et al.). They coincide in steady state.
-:::
-:::
-::: {.column width="45%"}
-```{mermaid}
-%%| fig-width: 6
-flowchart LR
-  P["past incidence i(t-&tau;)"] -->|" * "| G["generation interval g(&tau;)"]
-  G --> CV["convolve"]
-  CV --> N["new incidence i(t)"]
-  R["R<sub>t</sub>"] --> CV
-  classDef k fill:#fff2cc,stroke:#b58900
-  class P,G,R,CV,N k
-```
-:::
-::::
-
-## The generation interval is a survival distribution
-
-:::: {.columns}
-::: {.column width="55%"}
-The generation interval $\tau$ is the time between infection of the **infector** and infection of the **infectee**.
-
-Conditional on a contact event, it inherits its shape from:
-
-- the time-to-infection of the contact (a hazard) and
-- the infector's infectiousness profile.
-
-You estimate it the way you would estimate any time-to-event distribution — from doubly-censored, biased samples.
-:::
-::: {.column width="45%"}
-```{r}
-#| fig-height: 4.7
-tau <- seq(0, 14, 0.05)
-df <- tibble(
-  tau,
-  density = dgamma(tau, shape = 4, rate = 4/5.2)
-)
-ggplot(df, aes(tau, density)) +
-  geom_area(fill = "#f1c1c1", colour = "#d62728", linewidth = 1.3) +
-  labs(x = "days between infections", y = "density",
-       title = "Generation interval g(tau)",
-       subtitle = "Gamma-shaped, mean ~5 days (illustrative)")
-```
-:::
-::::
-
-## Serial interval vs generation interval {.smaller}
-
-:::: {.columns}
-::: {.column width="55%"}
-- **Generation interval (GI):** time between *infection of infector* and *infection of infectee*. Governs the renewal equation.
-- **Serial interval (SI):** time between *symptom onset of infector* and *symptom onset of infectee*. Observable in line lists.
-
-$$\text{SI} = \text{GI} + (\text{incubation}_{\text{infectee}} - \text{incubation}_{\text{infector}})$$
-
-Equal means, but SI has **larger variance** and can be negative.
-
-::: {.callout-note appearance="minimal"}
-In the workshop case study, the contact-tracing data gives both — onset times always, infection times only sometimes (interval-censored).
-:::
-:::
-::: {.column width="45%"}
-```{r}
-#| fig-height: 4.7
-set.seed(9)
-n <- 5000
-inc_or <- rgamma(n, shape = 4, rate = 4/4)   # infector incubation
-inc_ee <- rgamma(n, shape = 4, rate = 4/4)   # infectee incubation
-GI <- rgamma(n, shape = 4, rate = 4/5.2)
-SI <- GI + (inc_ee - inc_or)
-df <- bind_rows(
-  tibble(value = GI, kind = "Generation interval"),
-  tibble(value = SI, kind = "Serial interval")
-)
-ggplot(df, aes(value, fill = kind, colour = kind)) +
-  geom_density(alpha = 0.35, linewidth = 1.2) +
-  geom_vline(xintercept = 0, linetype = "22") +
-  scale_fill_manual(values  = c("Generation interval" = "#d62728",
-                                "Serial interval"    = "#1f77b4")) +
-  scale_colour_manual(values = c("Generation interval" = "#d62728",
-                                 "Serial interval"    = "#1f77b4")) +
-  labs(x = "days", y = "density", fill = NULL, colour = NULL,
-       title = "Same mean, fatter tails — and SI can be negative") +
-  theme(legend.position = "bottom")
-```
-:::
-::::
-
-## Estimating R₀ from the early-phase growth {.smaller}
-
-:::: {.columns}
-::: {.column width="55%"}
-Early in the outbreak, incidence grows as $i(t) \approx i_0 e^{rt}$.
-
-**Euler–Lotka** turns the growth rate $r$ into $R_0$ via the generation interval:
-$$\frac{1}{R_0} = \int_0^\infty e^{-r\tau}\, w(\tau)\, d\tau$$
-
-For a Gamma generation time $w(\tau)\sim \text{Gamma}(\alpha,\beta)$, the Laplace transform gives the closed form
-$$\widehat{R}_0 = (1 + \widehat{\beta}\, r)^{\widehat{\alpha}}.$$
-
-A two-step recipe: fit GI from contact tracing → estimate $r$ from early incidence → plug in.
-:::
-::: {.column width="45%"}
-```{r}
-#| fig-height: 4.7
-r_grid <- seq(0, 0.35, 0.005)
-# Gamma GI: mean = 5.2, sd = 2.6 → shape=4, scale=1.3
-alpha <- 4; beta <- 1.3
-R0 <- (1 + beta * r_grid)^alpha
-df <- tibble(r = r_grid, R0 = R0)
-ggplot(df, aes(r, R0)) +
-  geom_line(linewidth = 1.6, colour = "#9467bd") +
-  geom_hline(yintercept = 1, linetype = "22") +
-  annotate("text", x = 0.27, y = 8,
-           label = "R0 = (1 + beta * r)^alpha\nGamma GI, mean 5.2 d",
-           hjust = 1, size = 4.2, fontface = "italic") +
-  labs(x = "exponential growth rate r (per day)", y = expression(widehat(R)[0]),
-       title = "Growth rate to R0, via the GI Laplace transform")
-```
-:::
-::::
-
-## A historic Rₜ: 1918 influenza, Philadelphia {.smaller}
-
-:::: {.columns}
-::: {.column width="48%"}
-- Modern reanalyses (Bootsma & Ferguson 2007, Hatchett et al. 2007) apply the renewal equation to city-level death counts
-- $R_t$ rose above 2 in early October 1918, then fell rapidly under NPIs **and** depletion
-- The Philadelphia–St-Louis comparison is the canonical "early NPIs flatten the curve" story
-:::
-::: {.column width="52%"}
-```{r}
-#| fig-height: 5.0
-set.seed(2)
-days <- 0:60
-peak <- 28
-mu <- 350 * dnorm(days, peak, 9) / max(dnorm(days, peak, 9))
-deaths <- rpois(length(days), pmax(mu, 0.5))
-# Stylised Rt: rises above 2, drops rapidly to ~0.7 around peak
-Rt <- 2.4 / (1 + exp(0.25 * (days - 22)))   # smooth fall
-Rt <- pmax(Rt, 0.6)
-df_d <- tibble(day = days, value = deaths, panel = "weekly deaths")
-df_r <- tibble(day = days, value = Rt,     panel = "R_t")
-df <- bind_rows(df_d, df_r) |>
-  mutate(panel = factor(panel, levels = c("weekly deaths", "R_t")))
-ggplot(df, aes(day, value)) +
-  geom_col(data = subset(df, panel == "weekly deaths"),
-           fill = "#d62728", alpha = 0.85) +
-  geom_hline(data = subset(df, panel == "R_t"),
-             aes(yintercept = 1), linetype = "22", colour = "grey40") +
-  geom_line(data = subset(df, panel == "R_t"),
-            colour = "#9467bd", linewidth = 1.6) +
-  facet_wrap(~panel, ncol = 1, scales = "free_y") +
-  labs(x = "days since first death (illustrative)", y = NULL,
-       title = "Stylised 1918 Philadelphia wave")
-```
-:::
-::::
-
-# Twist 4 — We see only fragments {background-color="#d62728" style="color:white;"}
-
-::: {style="color:white;"}
-**§ 4.** Censored exposures, truncated incidence, reporting delays.
-:::
-
-## A second historic anchor: John Snow, 1854 {.smaller}
-
-:::: {.columns}
-::: {.column width="55%"}
-Cholera outbreak, Broad Street, Soho. Snow:
-
-- Reconstructed **exposure times** from interviews
-- Plotted cases against a *risk set* (households per water source)
-- Inferred a hazard ratio between two water companies of ≈ **8.5**
-
-A door-to-door **cohort study with interval-censored exposure** — done in 1854 with no statistical theory yet written.
-
-::: {.fragment}
-> The first epidemiological estimator of a hazard ratio was a survival analyst doing nowcasting under right-truncation, by hand.
-:::
-:::
-::: {.column width="45%"}
-```{r}
-#| fig-height: 4.7
-df <- tibble(
-  company = c("Southwark & Vauxhall\n(contaminated)",
-              "Lambeth\n(clean source)"),
-  houses  = c(40046, 26107),
-  deaths  = c(1263, 98),
-  rate    = deaths / houses * 10000
-)
-ggplot(df, aes(reorder(company, rate), rate, fill = company)) +
-  geom_col(width = 0.6, show.legend = FALSE) +
-  geom_text(aes(label = sprintf("%.0f / 10k", rate)),
-            hjust = -0.1, size = 5, fontface = "bold") +
-  scale_fill_manual(values = c("#1f77b4", "#d62728")) +
-  coord_flip(clip = "off") +
-  expand_limits(y = max(df$rate) * 1.25) +
-  labs(x = NULL, y = "cholera deaths per 10,000 houses",
-       title = "Snow's natural experiment, 1854") +
-  theme(plot.margin = margin(5, 60, 5, 5))
-```
-:::
-::::
-
-## The line list {.smaller}
+## What data do we actually have?
 
 ```{mermaid}
 %%| fig-width: 10
 flowchart LR
-  Inf["infection<br/>(unobserved)"] --> Sym["symptom onset"]
-  Sym --> Conf["confirmation /<br/>report date"]
-  Conf --> End["outcome<br/>(R or D)"]
-  classDef u fill:#eeeeee,stroke:#888,stroke-dasharray:4 4
+  Inf["infection\n(unobserved)"]:::u --> Sym["symptom\nonset"]:::o
+  Sym --> Rep["confirmed /\nreported"]:::o
+  Rep --> Out["outcome\n(R or D)"]:::o
+  classDef u fill:#eeeeee,stroke:#888,stroke-dasharray:4 4,color:#555
   classDef o fill:#d9f1d9,stroke:#2ca02c
-  class Inf u
-  class Sym,Conf,End o
 ```
 
-::: {.fragment}
 ::: {.incremental}
-- The infection time is almost **never** observed
-- The line list gives you onset, confirmation, outcome
-- Every duration of interest (incubation, generation, onset-to-death) involves at least one **censored** endpoint
+- Infection times are **almost never** observed
+- We see: symptom onset, confirmation date, outcome
+- Everything we care about involves at least one **censored or truncated** endpoint
+- The problems are familiar — only the names are different
 :::
-:::
 
-## Doubly interval-censored: incubation period
+## Reporting delays = right-truncation
 
-:::: {.columns}
-::: {.column width="55%"}
-For each case we know an exposure window $[E_L, E_R]$ and a symptom-onset window $[O_L, O_R]$.
+Cases reported with a delay. If we condition on what has been reported **by today**, we systematically miss recent cases.
 
-The incubation period is
-$$T = O - E,\qquad E\in[E_L,E_R],\ O\in[O_L,O_R].$$
-
-This is a textbook **doubly interval-censored** survival problem.
-EM, Bayesian augmentation, multiple imputation — the standard kit.
-:::
-::: {.column width="45%"}
 ```{r}
-#| fig-height: 4.7
-set.seed(11)
-n <- 12
-df <- tibble(
-  case = factor(seq_len(n)),
-  EL = runif(n, -3, -1), ER = EL + runif(n, 0.5, 2),
-  OL = ER + runif(n, 1.5, 6), OR = OL + runif(n, 0.3, 1.5)
-)
-ggplot(df) +
-  geom_segment(aes(x = EL, xend = ER, y = case, yend = case),
-               colour = "#1f77b4", linewidth = 3, lineend = "round") +
-  geom_segment(aes(x = OL, xend = OR, y = case, yend = case),
-               colour = "#d62728", linewidth = 3, lineend = "round") +
-  labs(x = "days", y = "case",
-       title = "Exposure (blue) and onset (red) intervals",
-       subtitle = "Both endpoints censored")
-```
-:::
-::::
-
-## Right-truncation in real time
-
-:::: {.columns}
-::: {.column width="50%"}
-**Survival mindset:** a subject's event happened, we just stopped following.
-
-**Outbreak mindset:** a case happened, but **hasn't been reported yet** because of reporting delay $D$.
-
-If we condition on cases reported by today, we systematically miss those with long delays — **right-truncation**.
-
-This is the classic HIV back-calculation problem (Brookmeyer & Gail, 1980s).
-:::
-::: {.column width="50%"}
-```{r}
-#| fig-height: 4.7
 set.seed(3)
 days <- 0:80
 mu <- 160 * dnorm(days, 50, 9) / max(dnorm(days, 50, 9))
@@ -1064,274 +469,249 @@ for (d in seq_along(days)) {
       reported[d] <- reported[d] + true_inc[d] * delay_pmf[k+1]
   }
 }
-df <- tibble(day = days, true = true_inc, reported = reported)
-ggplot(df, aes(day)) +
-  geom_col(aes(y = true), fill = NA, colour = "#1f77b4", linewidth = 0.4) +
-  geom_col(aes(y = reported), fill = "#d62728", alpha = 0.85) +
-  geom_vline(xintercept = today, linetype = "22") +
-  annotate("text", x = today + 0.5, y = max(true_inc) * 0.95,
-           label = "← today", hjust = 0, size = 5, fontface = "bold") +
-  annotate("text", x = 8, y = max(true_inc) * 0.6,
-           label = "true (outline)", colour = "#1f77b4",
-           hjust = 0, size = 4.5, fontface = "bold") +
-  annotate("text", x = 8, y = max(true_inc) * 0.45,
-           label = "what we see today (filled)", colour = "#d62728",
-           hjust = 0, size = 4.5, fontface = "bold") +
-  labs(x = "day", y = "cases",
-       title = "Right-truncated incidence")
-```
-:::
-::::
-
-## The Rₜ wobble at the right edge {.smaller}
-
-:::: {.columns}
-::: {.column width="50%"}
-A naive $R_t$ estimator that ignores reporting delays will produce a sharp **artefactual drop** at the most recent dates.
-
-This is identical to estimating a hazard at the right edge of follow-up without accounting for censoring.
-
-Solutions = **nowcasting**:
-
-::: {.incremental}
-- delay-distribution deconvolution
-- Bayesian state-space models (`EpiNow2`, `epinowcast`)
-- back-calculation
-:::
-:::
-::: {.column width="50%"}
-```{r}
-#| fig-height: 4.7
-set.seed(4)
-days <- 0:60
-true_Rt <- 1.2 + 0.4 * sin(days / 8)
-naive_Rt <- true_Rt
-naive_Rt[55:61] <- naive_Rt[55:61] - seq(0.05, 0.7, length.out = 7)
-df <- tibble(day = days, true = true_Rt, `naive (right-truncated)` = naive_Rt) |>
+df <- tibble(day = days, `true incidence` = true_inc, `reported by today` = reported) |>
   pivot_longer(-day)
-ggplot(df, aes(day, value, colour = name)) +
-  geom_hline(yintercept = 1, linetype = "22") +
+ggplot(df, aes(day, value, fill = name)) +
+  geom_col(data = filter(df, name == "true incidence"),
+           fill = NA, colour = "#1f77b4", linewidth = 0.4) +
+  geom_col(data = filter(df, name == "reported by today"),
+           fill = "#d62728", alpha = 0.8) +
+  geom_vline(xintercept = today, linetype = "22") +
+  annotate("text", x = today + 1, y = max(true_inc) * 0.9,
+           label = "today →", hjust = 0, size = 3.5) +
+  labs(x = "day of symptom onset", y = "cases",
+       title = "Right-truncated incidence",
+       subtitle = "Outline: true incidence. Red: what we see today. Recent cases are undercounted.")
+```
+
+This is the same problem as **right-truncation** in follow-up studies. The fix — nowcasting — is a deconvolution of the delay distribution.
+
+## Incubation period = doubly interval-censored
+
+We know an exposure window $[E_L, E_R]$ and a symptom-onset window $[O_L, O_R]$.
+The incubation period $T = O - E$ is **doubly interval-censored** — a standard survival problem.
+
+```{r}
+set.seed(11)
+n <- 12
+df <- tibble(
+  case = factor(paste("case", seq_len(n))),
+  EL = runif(n, -3, -1), ER = EL + runif(n, 0.5, 2),
+  OL = ER + runif(n, 1.5, 6), OR = OL + runif(n, 0.3, 1.5)
+)
+ggplot(df) +
+  geom_segment(aes(x = EL, xend = ER, y = case, yend = case),
+               colour = "#1f77b4", linewidth = 3.5, lineend = "round") +
+  geom_segment(aes(x = OL, xend = OR, y = case, yend = case),
+               colour = "#d62728", linewidth = 3.5, lineend = "round") +
+  labs(x = "days", y = NULL,
+       title = "Exposure windows (blue) and onset windows (red)",
+       subtitle = "Both endpoints censored. EM, Bayesian augmentation, or multiple imputation all apply.")
+```
+
+## Vaccine effectiveness is a hazard ratio
+
+$$VE(t) = 1 - \frac{\lambda_{\text{vaccinated}}(t)}{\lambda_{\text{unvaccinated}}(t)} = 1 - HR(t)$$
+
+```{r}
+t <- seq(0, 180, 1)
+true_VE  <- 0.3 + 0.6 * exp(-t / 90)
+naive_VE <- true_VE - 0.12 * (1 - exp(-t / 50))
+tibble(t, `true VE` = true_VE, `naive estimate (biased)` = naive_VE) |>
+  pivot_longer(-t) |>
+  ggplot(aes(t, value, colour = name)) +
   geom_line(linewidth = 1.5) +
-  scale_colour_manual(values = c(true = "#1f77b4",
-                                 `naive (right-truncated)` = "#d62728")) +
-  labs(x = "day", y = expression(R[t]), colour = NULL,
-       title = "Why the latest Rt looks too low") +
-  theme(legend.position = "bottom")
-```
-:::
-::::
-
-## Nowcasting in one slide
-
-```{mermaid}
-%%| fig-width: 10
-flowchart LR
-  R["reported<br/>cases by date"] --> M["delay<br/>model f(d)"]
-  M --> D["deconvolution"]
-  D --> N["nowcast of<br/>true incidence"]
-  N --> Rt["unbiased R<sub>t</sub>"]
-  classDef k fill:#fff2cc,stroke:#b58900
-  class R,M,D,N,Rt k
-```
-
-::: {.fragment}
-> Nowcasting is to outbreak surveillance what censoring corrections are to follow-up studies.
-:::
-
-## Other censoring/truncation cousins {.smaller}
-
-| Outbreak situation | Survival analogue |
-|---|---|
-| Reporting delay | Right-truncation |
-| Cases never confirmed | Right-censoring at study end |
-| Exposure window unknown | Left-truncation / interval censoring |
-| Doubly-censored incubation | Doubly interval-censored data |
-| Onset-to-death cohort still alive | Right-censored time-to-event |
-| Asymptomatic infections | Latent / unobserved events |
-
-::: {.fragment}
-Every method on the right has been used to fix the corresponding problem on the left, often by your own community.
-:::
-
-# Twist 5 — Interventions act on populations {background-color="#e08214" style="color:white;"}
-
-::: {style="color:white;"}
-**§ 5.** Serology, vaccine effectiveness, excess mortality — the case-study toolkit.
-:::
-
-## Serology: a window on the cumulative hazard {.smaller}
-
-:::: {.columns}
-::: {.column width="55%"}
-A repeated cross-sectional serosurvey gives **time-dependent seroprevalence** $\pi_s(t) = \Pr(Z=1 \mid T_s = t)$.
-
-For a perfect test, $\pi_s(t)$ is the **cumulative incidence** by time $t$ — i.e. $1 - S(t)$ where $S$ is the susceptible-survival function.
-
-**Imperfect test (Rogan–Gladen, 1978):**
-$$\pi(t) = \frac{\pi_s(t) + \psi - 1}{\phi + \psi - 1}$$
-
-with sensitivity $\phi$, specificity $\psi$ — a textbook misclassification correction.
-
-::: {.fragment}
-*Case-study task 4:* combine serial seroprevalence with reported incidence to estimate **under-reporting**.
-:::
-:::
-::: {.column width="45%"}
-```{r}
-#| fig-height: 4.7
-# Stylised serosurvey: 4 sampling times, R0 ~ 2, single SIR wave
-out <- as.data.frame(ode(c(S = 0.999, I = 0.001, R = 0),
-                         seq(0, 80, 0.5), sir,
-                         parms = c(beta = 0.45, gamma = 0.18, N = 1)))
-out$cum_inc <- 1 - out$S
-sample_t <- c(10, 20, 30, 40)
-set.seed(5)
-samp <- tibble(t = sample_t,
-               true = approx(out$time, out$cum_inc, sample_t)$y) |>
-  mutate(observed = pmin(1, pmax(0, true + rnorm(n(), 0, 0.015))))
-ggplot() +
-  geom_line(data = out, aes(time, cum_inc),
-            colour = "#1f77b4", linewidth = 1.4) +
-  geom_point(data = samp, aes(t, observed),
-             size = 5, colour = "#d62728") +
-  geom_errorbar(data = samp,
-                aes(x = t, ymin = pmax(0, observed - 0.03),
-                    ymax = pmin(1, observed + 0.03)),
-                width = 1, colour = "#d62728", linewidth = 0.8) +
-  scale_y_continuous(labels = scales::percent) +
-  labs(x = "day", y = "cumulative incidence / seroprevalence",
-       title = "Cross-sectional serosurveys",
-       subtitle = "Blue: true 1 - S(t). Red: noisy survey estimates.")
-```
-:::
-::::
-
-## Mixture models on antibody titers {.smaller}
-
-:::: {.columns}
-::: {.column width="55%"}
-Skip the threshold. Model the **continuous** log-titer $Y_i$ as a two-component mixture:
-$$f(y \mid t) = (1-\pi(t))\, f_{\text{neg}}(y) + \pi(t)\, f_{\text{pos}}(y)$$
-
-- $f_{\text{neg}}, f_{\text{pos}}$ : titre distributions in seronegative / seropositive subpopulations
-- $\pi(t)$ : true prevalence — the survival quantity you want
-- **Left-censoring at the limit of detection** ($\ln 5 \approx 1.61$) — standard survival-analysis treatment
-
-A nonparametric or parametric mixture cleanly propagates uncertainty about sensitivity / specificity into the seroprevalence estimate.
-:::
-::: {.column width="45%"}
-```{r}
-#| fig-height: 4.7
-set.seed(13)
-y <- seq(0, 8, 0.02)
-f_neg <- dnorm(y, mean = 1.8, sd = 0.5)
-f_pos <- dnorm(y, mean = 5.5, sd = 0.9)
-pi_t <- 0.35
-mix <- (1 - pi_t) * f_neg + pi_t * f_pos
-df <- tibble(y, seronegative = (1 - pi_t) * f_neg,
-             seropositive = pi_t * f_pos,
-             mixture = mix) |>
-  pivot_longer(-y)
-ggplot(df, aes(y, value, colour = name, linetype = name)) +
-  geom_line(linewidth = 1.4) +
-  geom_vline(xintercept = log(5), linetype = "22", colour = "grey40") +
-  annotate("text", x = log(5) + 0.05, y = max(mix) * 0.95,
-           label = "LoD = ln(5)", hjust = 0, size = 4) +
-  scale_colour_manual(values = c(seronegative = "#1f77b4",
-                                 seropositive = "#d62728",
-                                 mixture = "black")) +
-  scale_linetype_manual(values = c(seronegative = "solid",
-                                   seropositive = "solid",
-                                   mixture = "22")) +
-  labs(x = "log antibody titer (IU/mL)", y = "density",
-       colour = NULL, linetype = NULL,
-       title = "Two-component mixture, left-censored at LoD") +
-  theme(legend.position = "bottom")
-```
-:::
-::::
-
-## Vaccine effectiveness is a hazard ratio {.smaller}
-
-:::: {.columns}
-::: {.column width="55%"}
-$$VE = 1 - RR = 1 - \frac{\Pr(\text{infection} \mid V)}{\Pr(\text{infection} \mid \bar{V})}$$
-
-But which $RR$? Cumulative, rate, or **hazard ratio**?
-
-In survival language:
-$$\lambda_V(t) = e^{-\beta(t)}\, \lambda_{\bar{V}}(t),\qquad VE(t) = 1 - e^{-\beta(t)}$$
-
-- **Waning immunity:** $\beta(t)$ time-varying ⇒ a flexible Cox / Aalen model
-- **Depletion of high-risk first** (frailty!) makes VE look smaller than it is
-- **Time-varying covariate:** vaccination is a transition between states — multistate again
-
-::: {.fragment}
-*Case-study task 4 / 5:* breakthrough infections under vaccination + waning are a time-to-event problem with a time-dependent exposure.
-:::
-:::
-::: {.column width="45%"}
-```{r}
-#| fig-height: 4.7
-t <- seq(0, 200, 1)
-# True VE wanes from 0.9 to 0.3 over 6 months
-true_VE <- 0.3 + 0.6 * exp(-t / 90)
-# Naive VE biased downward by frailty depletion (high-risk infect first)
-naive_VE <- true_VE - 0.1 * (1 - exp(-t / 60))
-df <- tibble(t, true = true_VE, `naive (frailty-biased)` = naive_VE) |>
-  pivot_longer(-t)
-ggplot(df, aes(t, value, colour = name)) +
-  geom_line(linewidth = 1.5) +
-  scale_colour_manual(values = c(true = "#1f77b4",
-                                 `naive (frailty-biased)` = "#d62728")) +
+  scale_colour_manual(values = c(`true VE` = "#1f77b4",
+                                 `naive estimate (biased)` = "#d62728")) +
   scale_y_continuous(limits = c(0, 1), labels = scales::percent) +
   labs(x = "days since vaccination", y = "VE(t)", colour = NULL,
        title = "Apparent VE drops faster than true VE",
-       subtitle = "Selection of susceptibles + waning, combined") +
+       subtitle = "Depletion of high-risk susceptibles creates the illusion of waning") +
+  theme(legend.position = "bottom")
+```
+
+::: {.fragment}
+The downward bias comes from **frailty**: high-risk unvaccinated individuals are infected first, leaving a progressively lower-risk comparator group — the same artefact as frailty-induced declining hazards in survival data.
+:::
+
+# The workshop {background-color="#444444" style="color:white;"}
+
+## Your case study
+
+A simulated population-wide outbreak, generated by an individual-based model (**HERMES**).
+
+:::: {.columns}
+::: {.column width="55%"}
+::: {.incremental}
+- N = 1,000,000 individuals in households, schools, workplaces
+- SIRVD structure with heterogeneity in contacts and susceptibility
+- Lockdown at day 20 → exit at day 35 → vaccination from day 45
+- You do **not** see the full dataset until Day 5
+:::
+:::
+::: {.column width="45%"}
+**Available datasets**
+
+| | |
+|--|--|
+| `final_demographic_data` | age, sex, household |
+| `final_incidence_data` | reported cases + hospitalisations |
+| `final_sero_data` | IgG titres at days 10, 20, 30, 40 |
+| `final_contact_tracing_data` | infector–infectee pairs |
+| `final_mortality_data` | times of death |
+| `final_vaccination_data` | vaccination times |
+:::
+::::
+
+## Five questions — one per group
+
+| Group | Question |
+|:---:|:---|
+| **A** | Key epidemiological parameters: R₀, Rₜ, incubation period, reporting delay |
+| **B** | Serial interval distribution from contact tracing data |
+| **C** | Reporting delays and underreporting, using serological data |
+| **D** | Vaccine effectiveness and the role of susceptible depletion |
+| **E** | Excess mortality and its relation to infection and vaccination |
+
+::: {.fragment}
+Every one of these is a survival analysis problem in an epidemic setting.
+:::
+
+## Your toolkit applies
+
+| Workshop question | SA methods you'll reach for |
+|:---|:---|
+| **A** Epi parameters | Parametric survival, renewal equation |
+| **B** Serial interval | Censored time-to-event, interval censoring |
+| **C** Underreporting | Mixture models, truncation correction |
+| **D** Vaccine effectiveness | Time-varying covariates, Cox / Aalen |
+| **E** Excess mortality | Competing risks, relative survival |
+
+::: {.fragment}
+> The goal this week is not to learn new methods. It is to see where your methods already live inside IDM — and where the gaps are.
+:::
+
+## Thank you {.center}
+
+:::: {.columns}
+::: {.column width="55%"}
+**Questions for discussion**
+
+- Where does your own work already connect to IDM?
+- Where do the methods diverge?
+- What would help the most this week?
+:::
+::: {.column width="45%"}
+```{mermaid}
+%%| fig-width: 5
+flowchart LR
+  SA(("survival\nanalysis")):::sa <-->|"shared\nmath"| ID(("infectious\ndisease\nmodelling")):::id
+  classDef sa fill:#dfeefc,stroke:#1f77b4,color:#0b3d66,stroke-width:2px
+  classDef id fill:#fde2e2,stroke:#d62728,color:#5a0c0c,stroke-width:2px
+```
+:::
+::::
+
+---
+
+# Appendix {background-color="#888888" style="color:white;"}
+
+## The serial interval vs generation interval {.smaller}
+
+:::: {.columns}
+::: {.column width="55%"}
+- **Generation interval:** time between *infection* of infector and *infection* of infectee — governs the renewal equation
+- **Serial interval:** time between *symptom onset* of infector and *symptom onset* of infectee — what we observe in line lists
+
+$$\text{SI} = \text{GI} + (\text{incubation}_{\text{infectee}} - \text{incubation}_{\text{infector}})$$
+
+Same mean; SI has larger variance and can be **negative**.
+
+In the contact tracing data (Group B): onset times always observed, infection times sometimes interval-censored.
+:::
+::: {.column width="45%"}
+```{r}
+set.seed(9)
+n <- 5000
+GI <- rgamma(n, shape = 4, rate = 4/5.2)
+inc_or <- rgamma(n, shape = 4, rate = 4/4)
+inc_ee <- rgamma(n, shape = 4, rate = 4/4)
+SI <- GI + (inc_ee - inc_or)
+tibble(value = c(GI, SI),
+       kind  = rep(c("Generation interval", "Serial interval"), each = n)) |>
+  ggplot(aes(value, fill = kind, colour = kind)) +
+  geom_density(alpha = 0.35, linewidth = 1.2) +
+  geom_vline(xintercept = 0, linetype = "22") +
+  scale_fill_manual(values  = c("Generation interval" = "#d62728",
+                                "Serial interval"    = "#1f77b4")) +
+  scale_colour_manual(values = c("Generation interval" = "#d62728",
+                                 "Serial interval"    = "#1f77b4")) +
+  labs(x = "days", y = "density", fill = NULL, colour = NULL,
+       title = "Same mean — but SI can be negative") +
   theme(legend.position = "bottom")
 ```
 :::
 ::::
 
-## Excess mortality as competing risks {.smaller}
+## Heterogeneity and susceptible depletion {.smaller}
+
+:::: {.columns}
+::: {.column width="50%"}
+Not everyone is equally susceptible. High-contact or high-risk individuals are infected first — depleting from the susceptible pool.
+
+$$\lambda_i(t) = c_i \cdot \beta \cdot \frac{I(t)}{N}$$
+
+The $c_i$ are frailties. The population-average FoI **declines over time** even without any intervention — because the remaining susceptibles are lower-risk.
+
+This creates an apparent decline in vaccine effectiveness even when true protection hasn't waned (Group D).
+:::
+::: {.column width="50%"}
+```{r}
+t <- seq(0, 12, 0.05)
+groups <- tibble(g = c("low risk (c=0.4)", "average (c=1)", "high risk (c=2.5)"), c = c(0.4, 1, 2.5))
+df <- expand.grid(t = t, g = groups$g) |> left_join(groups, by = "g") |>
+  mutate(S = exp(-0.25 * c * t))
+pop <- df |> group_by(t) |> summarise(S = mean(S), .groups = "drop") |> mutate(g = "population mean")
+ggplot() +
+  geom_line(data = df, aes(t, S, colour = g), linewidth = 1.2) +
+  geom_line(data = pop, aes(t, S), colour = "black", linewidth = 1.6, linetype = "22") +
+  scale_colour_brewer(palette = "Set1") +
+  labs(x = "time", y = "S(t)", colour = NULL,
+       title = "High-risk individuals deplete first",
+       subtitle = "Black: population mean. Apparent FoI declines without any intervention.") +
+  theme(legend.position = "bottom")
+```
+:::
+::::
+
+## Excess mortality {.smaller}
 
 :::: {.columns}
 ::: {.column width="55%"}
-The mortality dataset records *time of death* with **no cause attribution**.
+The mortality data records time of death — **no cause attribution**.
 
-The standard fix:
+$$\text{excess}(t) = \text{observed}(t) - \mathbb{E}[\text{baseline mortality}](t)$$
 
-$$
-\text{excess}(t) = \text{observed}(t) - E[\,\text{baseline mortality}\,](t)
-$$
+In survival terms: decompose total hazard into epidemic and non-epidemic components. The epidemic component is the excess hazard.
 
-In survival language, this is just a **cause-specific** decomposition where the cause is unobserved:
-
-- baseline hazard $\mu(a)$ estimated from pre-pandemic data
-- excess hazard attributed to the epidemic
-- competing-risks structure: $S \to D_{\text{epi}}$ vs $\cdot \to D_{\text{other}}$
-
-::: {.fragment}
-*Case-study task 5:* relate excess mortality to infection and vaccination histories — a multistate model with time-dependent covariates.
-:::
+- Baseline $\mu(a)$ estimated from pre-pandemic data
+- Competing risks: $\to D_{\text{epidemic}}$ vs $\to D_{\text{other}}$
+- Group E: relate excess mortality to infection and vaccination histories via multistate model with time-dependent covariates
 :::
 ::: {.column width="45%"}
 ```{r}
-#| fig-height: 4.7
 set.seed(8)
 weeks <- 1:60
 baseline <- 1000 + 20 * sin(2 * pi * weeks / 52)
 epi_signal <- 700 * dnorm(weeks, 35, 5) / max(dnorm(weeks, 35, 5))
 observed <- baseline + epi_signal + rnorm(length(weeks), 0, 25)
-df <- tibble(week = weeks, baseline, observed)
-ggplot(df, aes(week)) +
-  geom_ribbon(aes(ymin = baseline, ymax = observed),
-              fill = "#fff2cc", alpha = 0.9) +
+tibble(week = weeks, baseline, observed) |>
+  ggplot(aes(week)) +
+  geom_ribbon(aes(ymin = baseline, ymax = observed), fill = "#fff2cc", alpha = 0.9) +
   geom_line(aes(y = observed), colour = "#d62728", linewidth = 1.4) +
-  geom_line(aes(y = baseline), colour = "#1f77b4", linewidth = 1.4,
-            linetype = "22") +
-  annotate("text", x = 35, y = 1500, label = "excess",
-           colour = "#5a4500", size = 5, fontface = "bold") +
+  geom_line(aes(y = baseline), colour = "#1f77b4", linewidth = 1.4, linetype = "22") +
+  annotate("text", x = 35, y = 1500, label = "excess", colour = "#5a4500",
+           size = 4.5, fontface = "bold") +
   labs(x = "week", y = "weekly deaths",
        title = "Excess mortality = area between curves",
        subtitle = "Blue dashed: expected baseline. Red: observed.")
@@ -1339,106 +719,23 @@ ggplot(df, aes(week)) +
 :::
 ::::
 
-# Synthesis {background-color="#444444" style="color:white;"}
+## Software {.smaller}
 
-## The full dictionary {.smaller}
+| Need | Survival | Epidemiology |
+|:---|:---|:---|
+| Hazards, KM, Cox | `survival`, `survminer` | (shared) |
+| Multistate / competing risks | `mstate`, `flexsurv` | `EpiModel` |
+| ODE / compartmental models | — | `deSolve`, `odin` |
+| Rₜ estimation | — | `EpiEstim`, `EpiNow2` |
+| Doubly interval-censored | `icenReg` | `coarseDataTools` |
+| Nowcasting | — | `epinowcast` |
+| Mixture models | `flexmix` | (shared) |
 
-| Survival analysis | Infectious disease modelling |
-|---|---|
-| Hazard $h(t)$ | Force of infection $\lambda(t)$ |
-| Cumulative hazard $H(t)$ | Cumulative incidence per susceptible |
-| Survival $S(t)$ | Susceptible fraction |
-| Frailty $Z$ | Heterogeneous susceptibility / activity |
-| Cox PH | Proportional FoI / risk-stratified models |
-| Multistate model | Compartmental model (SIR, SEIR, …) |
-| Sojourn time | Latent / infectious period |
-| Competing risks | Recovery vs. death; multiple pathogens |
-| Right-truncation | Reporting delay / nowcasting |
-| Doubly interval-censoring | Incubation / generation interval estimation |
-| Restricted mean survival time | $R_0$ as $\int \beta(\tau)S_I(\tau) d\tau$ |
-| Recurrent events | Reinfection / waning immunity |
-| $1 - S(t)$ | Time-dependent seroprevalence $\pi(t)$ |
-| Misclassification correction | Rogan–Gladen estimator |
-| Time-dependent hazard ratio | Vaccine effectiveness $VE(t)$ |
-| Excess hazard | Excess mortality |
+## Further reading
 
-## What infectious disease modelling adds {.smaller}
-
-:::: {.columns}
-::: {.column width="50%"}
-::: {.incremental}
-- **Endogenous hazard.** $\lambda(t)$ depends on the population state.
-- **Network structure.** Risk sets are not exchangeable — contacts matter.
-- **Reinfection.** Recurrent-event survival, waning immunity as a hazard model.
-- **Causal interventions at scale.** Vaccination, NPIs — population counterfactuals.
-:::
-:::
-::: {.column width="50%"}
-::: {.incremental}
-- **Phylogenetics.** Trees of pathogens give independent windows on the same hazard process.
-- **Spatial dependence.** Latent point processes; classical survival rarely needs them.
-- **Real-time decisions.** Right-truncation matters every day, not only at study end.
-:::
-:::
-::::
-
-## Software bridges
-
-| Need | Survival side | Epi side |
-|---|---|---|
-| Hazards, KM, Cox | `survival`, `survminer` | shared |
-| Multistate / competing risks | `mstate`, `flexsurv` | `EpiModel`, `SimInf` |
-| ODE / compartmental | — | `deSolve`, `pomp` |
-| Rₜ estimation | — | `EpiEstim`, `EpiNow2`, `epinowcast` |
-| Doubly interval-censored | `icenReg`, `Icens` | `coarseDataTools`, `epitrix` |
-| Nowcasting | — | `nobBs`, `epinowcast` |
-
-::: {.fragment}
-Almost every "epi" package above is a thin layer over machinery your community wrote first.
-:::
-
-## Take-aways {.smaller}
-
-::: {.incremental}
-1. **Hazard = force of infection.** Same equation, two communities.
-2. **SIR/SEIR are multistate models** with endogenous transition intensities.
-3. **R₀ and Rₜ** are integrals and ratios of objects you already estimate.
-4. **Censoring and truncation** in outbreak data are the same problems your field has solved for decades.
-5. The remaining hard problems — networks, reinfection, real-time inference — are *exactly* where survival analysis can push the field forward.
-:::
-
-## Further reading {.smaller}
-
-- Kermack & McKendrick (1927). *A contribution to the mathematical theory of epidemics.* **Proc. R. Soc. A.**
-- Bernoulli (1760). *Essai d'une nouvelle analyse de la mortalité causée par la petite vérole…*
-- Anderson & May (1991). *Infectious Diseases of Humans.* OUP.
-- Andersson & Britton (2000). *Stochastic Epidemic Models and Their Statistical Analysis.* Springer.
-- Held, Hens, O'Neill & Wallinga, eds. (2019). *Handbook of Infectious Disease Data Analysis.* CRC.
-- Cori, Ferguson, Fraser & Cauchemez (2013). A new framework and software to estimate $R_t$. **AJE.**
-- Brookmeyer & Gail (1988). A method for obtaining short-term projections of the AIDS epidemic. **JASA.**
+- Kermack & McKendrick (1927). A contribution to the mathematical theory of epidemics. *Proc. R. Soc. A.*
 - Keeling & Rohani (2008). *Modeling Infectious Diseases in Humans and Animals.* Princeton.
-- Wallinga & Lipsitch (2007). How generation intervals shape the relationship between growth rates and reproductive numbers. **Proc. R. Soc. B.**
-- Rogan & Gladen (1978). Estimating prevalence from the results of a screening test. **AJE.**
-- Hens et al. (2012). *Modeling Infectious Disease Parameters Based on Serological and Social Contact Data.* Springer.
-- Halloran et al. (2010). *Design and Analysis of Vaccine Studies.* Springer.
-
-## Thank you {.center}
-
-:::: {.columns}
-::: {.column width="50%"}
-**Discussion**
-
-- Where does *your* method already apply?
-- Where are the open methodological gaps?
-- What would unlock collaboration?
-:::
-::: {.column width="50%"}
-```{mermaid}
-%%| fig-width: 6
-flowchart LR
-  SA(("survival<br/>analysis")):::sa <-->|"shared math"| ID(("infectious<br/>disease<br/>modelling")):::id
-  classDef sa fill:#dfeefc,stroke:#1f77b4,color:#0b3d66
-  classDef id fill:#fde2e2,stroke:#d62728,color:#5a0c0c
-```
-:::
-::::
+- Grassly & Fraser (2008). Mathematical models of infectious disease transmission. *Nature Reviews Microbiology.*
+- Cori et al. (2013). A new framework and software to estimate time-varying reproduction numbers. *American Journal of Epidemiology.*
+- Lipsitch (2019). Challenges of vaccine effectiveness and waning studies. *Clinical Infectious Diseases.*
+- Held, Hens, O'Neill & Wallinga, eds (2019). *Handbook of Infectious Disease Data Analysis.* CRC.
