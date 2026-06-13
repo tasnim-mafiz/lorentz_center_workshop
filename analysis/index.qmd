@@ -11,6 +11,7 @@ Each group has a subfolder for their analysis scripts. Scripts will appear here 
 | Group B | Serial interval distribution | `analysis/group-B/` |
 | Group C | Reporting delays and underreporting | `analysis/group-C/` |
 | Group D | Vaccine effectiveness | `analysis/group-D/` |
+| Group E | Excess mortality | `analysis/group-E/` |
 
 ---
 
@@ -27,13 +28,13 @@ git clone https://github.com/kylieainslie/lorentz_center_workshop.git
 cd lorentz_center_workshop
 ```
 
-Switch to your group's branch — replace `A` with your group letter (`A`, `B`, `C`, or `D`):
+Switch to your group's branch — replace `A` with your group letter (`A`, `B`, `C`, `D`, or `E`):
 
 ```bash
 git checkout group-A
 ```
 
-The four branches (`group-A`, `group-B`, `group-C`, `group-D`) already exist on GitHub. Do not create a new branch.
+The five branches (`group-A`, `group-B`, `group-C`, `group-D`, `group-E`) already exist on GitHub. Do not create a new branch.
 
 ### Adding your scripts
 
