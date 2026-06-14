@@ -895,8 +895,6 @@ Epidemic surveillance **systematically fails** to capture what we want to observ
 
 **The gap:** cases occurred earlier than the data suggests — recent events are systematically missing because reporting takes time.
 
-Cases reported with a delay. If we condition on what has been reported **by today**, we systematically miss recent cases.
-
 ```{r}
 set.seed(3)
 days <- 0:80
@@ -927,23 +925,12 @@ ggplot(df, aes(day, value, fill = name)) +
        subtitle = "Outline: true incidence. Red: what we see today. Recent cases are undercounted.")
 ```
 
-This is the same problem as **right-truncation** in follow-up studies. The fix — nowcasting — is a deconvolution of the delay distribution.
+The fix — **nowcasting** — is a deconvolution of the reporting-delay distribution.
 
 ## Incubation period <span style="font-size:0.55em; background:#1f77b4; color:white; padding:3px 10px; border-radius:10px; margin-left:8px; font-weight:normal; vertical-align:middle;">Doubly interval-censored</span>
 
-**The gap:** we never observe the infection time directly — only a window of possible exposure and a window of possible onset.
+**The gap:** infection time is unobserved — we only know a window of possible exposure $[E_L, E_R]$ and a window of possible onset $[O_L, O_R]$.
 
-:::: {.columns}
-::: {.column width="42%"}
-We know an **exposure window** $[E_L, E_R]$ and a **symptom-onset window** $[O_L, O_R]$.
-
-The incubation period $T = O - E$ is doubly interval-censored.
-
-::: {.fragment}
-Standard methods apply: EM algorithm, Bayesian data augmentation, multiple imputation.
-:::
-:::
-::: {.column width="58%"}
 ```{r}
 set.seed(11)
 n <- 12
@@ -960,27 +947,13 @@ ggplot(df) +
   labs(x = "days", y = NULL,
        title = "Exposure windows (blue) · Onset windows (red)")
 ```
-:::
-::::
+
+The incubation period $T = O - E$ is doubly interval-censored. EM, Bayesian augmentation, and multiple imputation all apply.
 
 ## Underreporting and serology <span style="font-size:0.55em; background:#1f77b4; color:white; padding:3px 10px; border-radius:10px; margin-left:8px; font-weight:normal; vertical-align:middle;">Missing data</span>
 
-**The gap:** most infections are never confirmed — reported cases are a fraction of what actually occurred.
+**The gap:** most infections are never confirmed — reported cases are a fraction of the true total. Serological surveys recover the missing signal: seroprevalence $\pi(t) = 1 - S(t)$.
 
-Reported case counts **undercount** true infections — not everyone seeks care or gets tested.
-
-:::: {.columns}
-::: {.column width="50%"}
-**Serological surveys** provide an independent window on true cumulative incidence.
-
-::: {.incremental}
-- Seroprevalence $\pi(t)$ = fraction with detectable antibodies by time $t$
-- For a perfect test: $\pi(t) = 1 - S(t)$ — the survival analog of cumulative incidence
-- Imperfect tests: Rogan–Gladen misclassification correction
-- Continuous antibody titers → **mixture model** on log-titer, with left-censoring at the detection limit
-:::
-:::
-::: {.column width="50%"}
 ```{r}
 set.seed(5)
 out_sero <- as.data.frame(ode(c(S = 0.999, I = 0.001, R = 0),
@@ -991,12 +964,13 @@ sample_t <- c(10, 20, 30, 40)
 samp <- tibble(t = sample_t,
                true = approx(out_sero$time, out_sero$cum_inc, sample_t)$y) |>
   mutate(observed = pmin(1, pmax(0, true + rnorm(n(), 0, 0.015))))
-new_inf <- c(NA, -diff(out_sero$S)) * 0.35  # 35% ascertainment
-out_sero$reported <- new_inf
+new_inf <- c(0, -diff(out_sero$S))
+out_sero$cum_reported <- cumsum(pmax(0, new_inf)) * 0.35
 ggplot() +
-  geom_line(data = out_sero, aes(time, cum_inc), colour = "#1f77b4", linewidth = 1.4) +
-  geom_col(data = out_sero[!is.na(out_sero$reported),],
-           aes(time, pmax(0, reported)), fill = "#d62728", alpha = 0.5, width = 0.4) +
+  geom_line(data = out_sero, aes(time, cum_inc),
+            colour = "#1f77b4", linewidth = 1.6) +
+  geom_line(data = out_sero, aes(time, cum_reported),
+            colour = "#d62728", linewidth = 1.6, linetype = "22") +
   geom_point(data = samp, aes(t, observed), size = 4, colour = "#9467bd") +
   geom_errorbar(data = samp,
                 aes(x = t, ymin = pmax(0, observed - 0.025), ymax = pmin(1, observed + 0.025)),
@@ -1004,16 +978,12 @@ ggplot() +
   scale_y_continuous(labels = scales::percent, limits = c(0, NA)) +
   labs(x = "day", y = NULL,
        title = "Three views of the same epidemic",
-       subtitle = "Blue: true cum. incidence (1−S). Red: reported cases. Purple: serosurvey.")
+       subtitle = "Blue: true cum. incidence.  Red dashed: cum. reported (35%).  Purple: serosurvey.")
 ```
-:::
-::::
 
 ## Vaccine effectiveness <span style="font-size:0.55em; background:#1f77b4; color:white; padding:3px 10px; border-radius:10px; margin-left:8px; font-weight:normal; vertical-align:middle;">Confounded time-varying HR</span>
 
-**The gap:** vaccination is not randomised in the real world — the observed difference between vaccinated and unvaccinated is confounded by who chose to vaccinate and who got infected first.
-
-$$VE(t) = 1 - \frac{\lambda_{\text{vaccinated}}(t)}{\lambda_{\text{unvaccinated}}(t)} = 1 - HR(t)$$
+**The gap:** $VE(t) = 1 - HR(t)$, but vaccination is not randomised — high-risk unvaccinated individuals are infected first, making the comparator group progressively lower-risk and creating the illusion of waning.
 
 ```{r}
 t <- seq(0, 180, 1)
@@ -1032,29 +1002,10 @@ tibble(t, `true VE` = true_VE, `naive estimate (biased)` = naive_VE) |>
   theme(legend.position = "bottom")
 ```
 
-::: {.fragment}
-The downward bias comes from **frailty**: high-risk unvaccinated individuals are infected first, leaving a progressively lower-risk comparator group — the same artefact as frailty-induced declining hazards in survival data.
-:::
-
 ## Excess mortality <span style="font-size:0.55em; background:#1f77b4; color:white; padding:3px 10px; border-radius:10px; margin-left:8px; font-weight:normal; vertical-align:middle;">Competing risks</span>
 
-**The gap:** cause of death is rarely recorded accurately during an epidemic — we know someone died, but not whether the epidemic was responsible.
+**The gap:** we know deaths occurred, but not which were caused by the epidemic. Excess mortality — observed minus expected — is the competing-risks problem with an unobserved cause indicator.
 
-When cause of death is unknown, we compare **observed deaths** to the deaths expected under baseline (pre-epidemic) mortality.
-
-:::: {.columns}
-::: {.column width="55%"}
-$$\text{excess}(t) = \text{observed}(t) - \mathbb{E}[\text{baseline mortality}](t)$$
-
-In survival terms: the total hazard decomposes into epidemic and non-epidemic components — the **excess hazard** framework.
-
-::: {.incremental}
-- Baseline $\mu(a)$ estimated from pre-epidemic data (life tables, Poisson regression)
-- Competing risks: $\to D_{\text{epidemic}}$ vs $\to D_{\text{other}}$
-- Multistate models with time-dependent covariates (vaccination, infection history) extend this naturally
-:::
-:::
-::: {.column width="45%"}
 ```{r}
 set.seed(8)
 weeks <- 1:60
@@ -1072,24 +1023,6 @@ tibble(week = weeks, baseline, observed) |>
        title = "Excess mortality = area between curves",
        subtitle = "Blue dashed: expected baseline. Red: observed.")
 ```
-:::
-::::
-
-## The same problems, familiar solutions
-
-Every data challenge in this section has a name in SA — and a method designed to handle it.
-
-| Data challenge | SA analog | SA method |
-|:---|:---|:---|
-| Reporting delays | Right-truncation | Truncation correction, nowcasting |
-| Incubation period | Doubly interval-censored | EM algorithm, Bayesian augmentation |
-| Underreporting | Missing data | Mixture models on antibody titres |
-| Vaccine effectiveness | Confounded time-varying HR | Time-varying covariate Cox / Aalen |
-| Excess mortality | Competing risks | Excess hazard, relative survival |
-
-::: {.fragment}
-Epidemic data is messy. But the mess is structured — and SA has been solving structured mess for decades.
-:::
 
 ## Questions? {.center}
 
