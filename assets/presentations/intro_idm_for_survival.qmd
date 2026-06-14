@@ -747,93 +747,101 @@ $S(t)$ = fraction of the population still susceptible
 Same equation. $S(t)$ is simultaneously a survival curve and the susceptible fraction.
 :::
 
-## Adding a latent period: SEIR
+## Real epidemics are messier
 
-Many infections have an incubation period — you are infected but not yet infectious.
+SIR is a starting point. Real outbreaks introduce complications that don't fit neatly into standard SA frameworks:
+
+:::: {.columns}
+::: {.column width="33%" .fragment}
+**Latency**
+
+People are infected but not yet infectious — a hidden state between S and I.
+
+*Standard SA:* add a sojourn distribution. But the latent state is unobserved.
+:::
+::: {.column width="33%" .fragment}
+**Multiple outcomes**
+
+Infection can lead to recovery, hospitalisation, or death — sometimes all three in sequence.
+
+*Standard SA:* competing risks handles two exits, but chains of events get complicated.
+:::
+::: {.column width="33%" .fragment}
+**Heterogeneity**
+
+Not everyone is equally susceptible, infectious, or at risk. High-risk individuals are infected first, changing the composition of the remaining susceptible pool over time.
+
+*Standard SA:* frailty models help, but don't capture epidemic feedback.
+:::
+::::
+
+## IDM's response: bespoke compartmental models
+
+You are not limited to SIR. You define whatever compartments the disease biology requires:
 
 ```{mermaid}
-%%| fig-width: 10
+%%| fig-width: 11
 flowchart LR
-  S(["S<br/><i>susceptible</i>"]):::s -->|"λ(t)"| E(["E<br/><i>exposed / latent</i>"]):::e
-  E -->|"σ"| I(["I<br/><i>infectious</i>"]):::i
-  I -->|"γ"| R(["R<br/><i>recovered</i>"]):::r
+  S:::s -->|"λ(t)"| E:::e
+  E -->|"σ"| I:::i
+  I -->|"γ(1−IFR)"| R:::r
+  I -->|"γ·IFR"| D:::d
+  I -->|"h"| H:::h
+  H -->|"δ"| R
+  H -->|"μ"| D
+  S -->|"vaccination"| V:::v
   classDef s fill:#cfe2f3,stroke:#1f77b4
   classDef e fill:#e8d8f7,stroke:#9467bd
   classDef i fill:#fde2e2,stroke:#d62728
   classDef r fill:#d9f1d9,stroke:#2ca02c
-```
-
-::: {.incremental}
-- The duration in **E** is the incubation period — a waiting-time distribution
-- Mean duration = $1/\sigma$ days; Exp($\sigma$) by default
-:::
-
-## Competing risks: when infection can kill
-
-```{mermaid}
-%%| fig-width: 9
-flowchart LR
-  S(["S"]):::s -->|"λ(t)"| I(["I"]):::i
-  I -->|"γ · (1 − IFR)"| R(["R  recovered"]):::r
-  I -->|"γ · IFR"| D(["D  dead"]):::d
-  classDef s fill:#cfe2f3,stroke:#1f77b4
-  classDef i fill:#fde2e2,stroke:#d62728
-  classDef r fill:#d9f1d9,stroke:#2ca02c
   classDef d fill:#eeeeee,stroke:#555
+  classDef h fill:#fff2cc,stroke:#b58900
+  classDef v fill:#d4edda,stroke:#155724
 ```
-
-::: {.incremental}
-- Two competing exits from $I$: recovery or death
-- The **infection fatality ratio (IFR)** is the cause-specific cumulative incidence as $t \to \infty$
-- The standard competing-risks toolkit — cause-specific hazards, Fine-Gray — applies directly
-:::
-
-## Heterogeneity in susceptibility
-
-Not everyone is equally susceptible. High-contact or high-risk individuals are infected first, depleting from the susceptible pool faster.
-
-:::: {.columns}
-::: {.column width="50%"}
-$$\lambda_i(t) = c_i \cdot \beta \cdot \frac{I(t)}{N}$$
-
-The $c_i$ are **frailties**. As high-risk individuals are removed, the population-average FoI declines — even with no change in transmission.
 
 ::: {.fragment}
-This is the **same artefact** as frailty-induced declining hazards in survival data — and it has real consequences for estimating vaccine effectiveness.
+Each arrow is a transition rate. Each box is a state. Domain knowledge is encoded directly into the model structure.
 :::
-:::
-::: {.column width="50%"}
-```{r}
-t <- seq(0, 12, 0.05)
-groups <- tibble(g = c("low risk (c=0.4)", "average (c=1)", "high risk (c=2.5)"), c = c(0.4, 1, 2.5))
-df <- expand.grid(t = t, g = groups$g) |> left_join(groups, by = "g") |>
-  mutate(S = exp(-0.25 * c * t))
-pop <- df |> group_by(t) |> summarise(S = mean(S), .groups = "drop") |> mutate(g = "population mean")
-ggplot() +
-  geom_line(data = df, aes(t, S, colour = g), linewidth = 1.2) +
-  geom_line(data = pop, aes(t, S), colour = "black", linewidth = 1.6, linetype = "22") +
-  scale_colour_brewer(palette = "Set1") +
-  labs(x = "time", y = "S(t)", colour = NULL,
-       title = "High-risk individuals deplete first",
-       subtitle = "Black: population mean. Apparent FoI declines with no intervention.") +
-  theme(legend.position = "bottom")
-```
-:::
-::::
 
-## The vocabulary dictionary
+## But bespoke models are harder
+
+The flexibility comes at a cost:
+
+::: {.incremental}
+- **More parameters** — each transition rate needs to be estimated; many are correlated
+- **Latent states are unobserved** — E, H, V compartments are not directly measured; inference relies on imperfect surveillance data
+- **Identifiability problems** — with aggregate data, you often cannot distinguish between competing explanations (e.g. waning immunity vs susceptible depletion)
+- **Computational burden** — likelihood evaluation requires solving ODEs or simulating the IBM at every parameter value
+- **No standard software** — unlike Cox regression, there is no off-the-shelf tool; models must be coded from scratch
+:::
+
+## This is where survival analysis comes in
+
+SA has spent decades solving *exactly* these inference problems for complex time-to-event data:
+
+| IDM challenge | SA toolkit |
+|:---|:---|
+| Latent, unobserved states | EM algorithm, data augmentation |
+| Competing outcomes & event chains | Competing risks, multistate models |
+| Heterogeneity & frailty | Frailty models, mixed effects |
+| Censored & truncated observations | Standard SA estimators |
+| Identifiability & model selection | Likelihood ratio tests, AIC, penalisation |
+
+::: {.fragment}
+> The goal of this workshop: bring SA inference tools to IDM model structures — and IDM biological realism to SA analyses.
+:::
+
+## The connection in brief
 
 | Survival analysis | Infectious disease modelling |
 |:---|:---|
 | Hazard $h(t)$ | Force of infection $\lambda(t)$ |
 | Survival $S(t)$ | Susceptible fraction |
-| Multistate model | Compartmental model (SIR, SEIR, …) |
-| Duration time | Latent / infectious period |
-| Competing risks | Recovery vs death |
+| Multistate model | Compartmental model |
+| Duration in state | Latent / infectious period |
+| Competing risks | Recovery vs death vs hospitalisation |
 | Frailty | Heterogeneous susceptibility |
-| Right-censoring | Unconfirmed infection |
 | Right-truncation | Reporting delay |
-| Doubly interval-censored | Incubation period estimation |
 | Time-varying hazard ratio | Vaccine effectiveness $VE(t)$ |
 | Excess hazard | Excess mortality |
 
