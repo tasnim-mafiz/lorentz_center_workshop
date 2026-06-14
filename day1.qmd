@@ -28,7 +28,7 @@ subtitle: "Monday 15 June 2026"
 
 ### Introduction to Infectious Disease Modeling
 
-*Slides will be posted here*
+[View presentation](assets/presentations/intro_idm_for_survival.html){.btn .btn-outline-primary target="_blank"}
 
 ### Case Study Overview
 
