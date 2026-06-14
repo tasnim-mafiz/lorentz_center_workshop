@@ -37,6 +37,7 @@ suppressPackageStartupMessages({
   library(dplyr)
   library(tidyr)
   library(deSolve)
+  library(patchwork)
 })
 theme_set(theme_minimal(base_size = 13) +
   theme(panel.grid.minor = element_blank(),
@@ -580,27 +581,39 @@ Because infection times are rarely observed, we use the **serial interval** as a
 :::
 ::: {.column width="58%"}
 ```{r}
-#| fig-height: 4.0
+#| fig-height: 4.8
 set.seed(42)
 days  <- 1:22
 cases <- c(1,2,3,5,8,13,20,28,34,38,36,30,24,18,12,8,6,4,3,2,2,1)
 t_now <- 18
-
+tau_max <- 15
 gi <- function(tau) dgamma(tau, shape = 4, rate = 4/5.2)
 
 df <- tibble(day = days, cases = cases) |>
   mutate(tau = t_now - day,
          w   = ifelse(tau > 0, gi(tau), 0),
-         in_window = tau > 0 & tau < 15)
+         in_window = tau > 0 & tau < tau_max)
 w_sum <- sum(df$w[df$in_window])
 df    <- mutate(df, w_norm = w / w_sum)
 
-tau_s  <- seq(0.2, 14.8, 0.1)
-gi_df  <- tibble(tau = tau_s, day = t_now - tau_s, dens = gi(tau_s))
-sc     <- max(cases) * 0.72 / max(gi_df$dens)
-gi_df  <- mutate(gi_df, dens_sc = dens * sc)
+tau_s <- seq(0.2, tau_max - 0.2, 0.1)
+gi_df <- tibble(tau = tau_s, day = t_now - tau_s, dens = gi(tau_s))
+sc    <- max(cases) * 0.72 / max(gi_df$dens)
+gi_df <- mutate(gi_df, dens_sc = dens * sc)
 
-ggplot() +
+# Rt via renewal equation
+Rt_est <- rep(NA_real_, length(days))
+for (i in seq_along(days)) {
+  t    <- days[i]
+  lags <- seq_len(min(t - 1L, tau_max))
+  if (length(lags) == 0L) next
+  denom <- sum(cases[t - lags] * gi(lags))
+  if (denom > 0) Rt_est[i] <- cases[t] / denom
+}
+rt_df <- tibble(day = days, Rt = Rt_est) |> filter(!is.na(Rt), day > 3)
+
+# Top: incidence + GI curve
+p_inc <- ggplot() +
   geom_col(data = filter(df, !in_window),
            aes(day, cases), fill = "grey85", colour = "grey70", width = 0.8) +
   geom_col(data = filter(df, in_window),
@@ -608,19 +621,27 @@ ggplot() +
   scale_fill_gradient(low = "#fff0b3", high = "#d62728", guide = "none") +
   geom_ribbon(data = gi_df, aes(day, ymin = 0, ymax = dens_sc),
               fill = "#9467bd", alpha = 0.25) +
-  geom_line(data = gi_df, aes(day, dens_sc),
-            colour = "#9467bd", linewidth = 1.5) +
-  geom_vline(xintercept = t_now, colour = "#d62728",
-             linewidth = 1.1, linetype = "22") +
-  annotate("text", x = t_now + 0.25, y = max(cases) * 0.93,
-           label = "t", colour = "#d62728", hjust = 0,
-           fontface = "bold", size = 5) +
-  annotate("text", x = 8.5, y = sc * gi(6) * 1.55,
-           label = "w(τ)", colour = "#9467bd",
-           hjust = 0.5, size = 5, fontface = "italic") +
-  scale_x_continuous(breaks = seq(2, 22, 4)) +
-  labs(x = "day", y = "incidence",
-       subtitle = "Bars: past cases, shaded by GI weight w(τ).  Purple curve: w(τ).")
+  geom_line(data = gi_df, aes(day, dens_sc), colour = "#9467bd", linewidth = 1.4) +
+  geom_vline(xintercept = t_now, colour = "#d62728", linewidth = 1, linetype = "22") +
+  annotate("text", x = t_now + 0.3, y = max(cases) * 0.9,
+           label = "t", colour = "#d62728", hjust = 0, fontface = "bold", size = 4.5) +
+  annotate("text", x = 7.5, y = sc * gi(5.5) * 1.6,
+           label = "w(τ)", colour = "#9467bd", size = 4.5, fontface = "italic") +
+  scale_x_continuous(breaks = seq(2, 22, 4), limits = c(1, 22)) +
+  labs(x = NULL, y = "incidence")
+
+# Bottom: Rt
+p_rt <- ggplot(rt_df, aes(day, Rt)) +
+  geom_hline(yintercept = 1, linetype = "22", colour = "grey50") +
+  geom_line(colour = "#1f77b4", linewidth = 1.4) +
+  geom_point(data = filter(rt_df, day == t_now),
+             colour = "#d62728", size = 3.5) +
+  geom_vline(xintercept = t_now, colour = "#d62728", linewidth = 1, linetype = "22") +
+  scale_x_continuous(breaks = seq(2, 22, 4), limits = c(1, 22)) +
+  scale_y_continuous(limits = c(0, NA)) +
+  labs(x = "day", y = expression(R[t]))
+
+p_inc / p_rt + plot_layout(heights = c(3, 2))
 ```
 :::
 ::::
@@ -743,8 +764,8 @@ flowchart LR
 ```
 
 ::: {.incremental}
-- The sojourn in **E** is the incubation period — a waiting-time distribution
-- Mean sojourn = $1/\sigma$ days; Exp($\sigma$) by default
+- The duration in **E** is the incubation period — a waiting-time distribution
+- Mean duration = $1/\sigma$ days; Exp($\sigma$) by default
 :::
 
 ## Competing risks: when infection can kill
@@ -807,7 +828,7 @@ ggplot() +
 | Hazard $h(t)$ | Force of infection $\lambda(t)$ |
 | Survival $S(t)$ | Susceptible fraction |
 | Multistate model | Compartmental model (SIR, SEIR, …) |
-| Sojourn time | Latent / infectious period |
+| Duration time | Latent / infectious period |
 | Competing risks | Recovery vs death |
 | Frailty | Heterogeneous susceptibility |
 | Right-censoring | Unconfirmed infection |
