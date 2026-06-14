@@ -764,7 +764,7 @@ People are infected but not yet infectious — a hidden state between S and I.
 
 Infection can lead to recovery, hospitalisation, or death — sometimes all three in sequence.
 
-*Standard SA:* competing risks handles two exits, but chains of events get complicated.
+*Multi-state SA* handles event chains well. The challenge: in an epidemic, transition rates depend on the current number infectious — and individual event times are often unobserved, only aggregates are reported.
 :::
 ::: {.column width="33%" .fragment}
 **Heterogeneity**
@@ -790,6 +790,7 @@ flowchart LR
   H -->|"δ"| R
   H -->|"μ"| D
   S -->|"vaccination"| V:::v
+  V -->|"(1−VE)·λ(t)"| E
   classDef s fill:#cfe2f3,stroke:#1f77b4
   classDef e fill:#e8d8f7,stroke:#9467bd
   classDef i fill:#fde2e2,stroke:#d62728
@@ -845,68 +846,27 @@ SA has spent decades solving *exactly* these inference problems for complex time
 | Time-varying hazard ratio | Vaccine effectiveness $VE(t)$ |
 | Excess hazard | Excess mortality |
 
-## From compartments to individuals
-
-SIR/SEIR models track **aggregate counts**. The case study uses an **individual-based model (IBM)** — HERMES — which simulates each person explicitly.
-
-:::: {.columns}
-::: {.column width="50%"}
-**Compartmental ODE model**
-
-- Tracks counts: $S(t)$, $I(t)$, $R(t)$
-- Continuous, deterministic
-- Output: epidemic curves
-
-```
-day  S       I      R
-0    999000  1000   0
-1    998100  1780   120
-...
-```
-:::
-::: {.column width="50%"}
-**Individual-based model**
-
-- Simulates each of 1,000,000 people
-- Stochastic, discrete-time
-- Output: individual event times
-
-```
-id  t_infected  t_hosp  t_vacc  t_death
-1   14          —       32      —
-2   —           —       31      —
-3   8           12      —       19
-...
-```
-:::
-::::
-
-::: {.fragment}
-The IBM output **looks like a survival dataset** — individual time-to-event records with censoring, competing risks, and time-varying exposures. Your SA toolkit applies directly.
-:::
-
 # The data challenges {background-color="#d62728" style="color:white;"}
 
-## What data do we actually have?
+## The surveillance gap
 
-```{mermaid}
-%%| fig-width: 10
-flowchart LR
-  Inf["infection<br/>(unobserved)"]:::u --> Sym["symptom<br/>onset"]:::o
-  Sym --> Rep["confirmed /<br/>reported"]:::o
-  Rep --> Out["outcome<br/>(R or D)"]:::o
-  classDef u fill:#eeeeee,stroke:#888,stroke-dasharray:4 4,color:#555
-  classDef o fill:#d9f1d9,stroke:#2ca02c
-```
+Epidemic surveillance **systematically fails** to capture what you most want to know.
 
-::: {.incremental}
-- Infection times are **almost never** observed
-- We see: symptom onset, confirmation date, outcome
-- Everything we care about involves at least one **censored or truncated** endpoint
-- The problems are familiar — only the names are different
+| What we want | What we get | SA analog |
+|:---|:---|:---|
+| When each person was infected | Symptom onset date, or report date | **Censoring / truncation** |
+| How many infections occurred | Confirmed cases — delayed and incomplete | **Missing data** |
+| Incubation period | Exposure window + onset window | **Doubly interval-censored** |
+| Causal effect of vaccination | Observed rates in confounded data | **Confounded time-varying HR** |
+| Cause-specific deaths | Total death counts | **Competing risks, unobserved cause** |
+
+::: {.fragment}
+Every row is a problem. Every SA analog is a solution. The next slides work through each one.
 :::
 
 ## Reporting delays = right-truncation
+
+**The gap:** cases occurred earlier than the data suggests — recent events are systematically missing because reporting takes time.
 
 Cases reported with a delay. If we condition on what has been reported **by today**, we systematically miss recent cases.
 
@@ -944,6 +904,8 @@ This is the same problem as **right-truncation** in follow-up studies. The fix �
 
 ## Incubation period = doubly interval-censored
 
+**The gap:** we never observe the infection time directly — only a window of possible exposure and a window of possible onset.
+
 :::: {.columns}
 ::: {.column width="42%"}
 We know an **exposure window** $[E_L, E_R]$ and a **symptom-onset window** $[O_L, O_R]$.
@@ -975,6 +937,8 @@ ggplot(df) +
 ::::
 
 ## Underreporting and serology
+
+**The gap:** most infections are never confirmed — reported cases are a fraction of what actually occurred.
 
 Reported case counts **undercount** true infections — not everyone seeks care or gets tested.
 
@@ -1020,6 +984,8 @@ ggplot() +
 
 ## Vaccine effectiveness is a hazard ratio
 
+**The gap:** vaccination is not randomised in the real world — the observed difference between vaccinated and unvaccinated is confounded by who chose to vaccinate and who got infected first.
+
 $$VE(t) = 1 - \frac{\lambda_{\text{vaccinated}}(t)}{\lambda_{\text{unvaccinated}}(t)} = 1 - HR(t)$$
 
 ```{r}
@@ -1044,6 +1010,8 @@ The downward bias comes from **frailty**: high-risk unvaccinated individuals are
 :::
 
 ## Excess mortality
+
+**The gap:** cause of death is rarely recorded accurately during an epidemic — we know someone died, but not whether the epidemic was responsible.
 
 When cause of death is unknown, we compare **observed deaths** to the deaths expected under baseline (pre-epidemic) mortality.
 
@@ -1079,6 +1047,22 @@ tibble(week = weeks, baseline, observed) |>
 ```
 :::
 ::::
+
+## The same problems, familiar solutions
+
+Every data challenge in this section has a name in SA — and a method designed to handle it.
+
+| Data challenge | SA method |
+|:---|:---|
+| Reporting delays | Right-truncation correction, nowcasting |
+| Incubation period | Doubly interval-censored survival |
+| Underreporting | Mixture models on antibody titres |
+| Vaccine effectiveness | Time-varying covariate Cox / Aalen |
+| Excess mortality | Excess hazard, competing risks |
+
+::: {.fragment}
+Epidemic data is messy. But the mess is structured — and SA has been solving structured mess for decades.
+:::
 
 ## Questions? {.center}
 
