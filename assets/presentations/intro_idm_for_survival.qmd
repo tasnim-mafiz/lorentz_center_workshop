@@ -564,54 +564,6 @@ The transmission rate drops; the shape of $R_t$ over time reflects when interven
 
 ::::
 
-## Infectiousness is not constant
-
-:::: {.columns}
-::: {.column width="42%"}
-In the SIR model, $\beta$ is a fixed rate. In reality, an infected person's infectiousness $\beta(\tau)$ changes over time since infection.
-
-::: {.incremental}
-- **Acute** infections peak in the first few days and clear quickly — short, fast generations
-- **Sustained** infections maintain low-level transmission for weeks or months — slower, longer-tailed spread
-:::
-
-::: {.fragment}
-The generation interval distribution follows directly:
-
-$$w(\tau) = \frac{\beta(\tau)}{R}$$
-
-The GI distribution **is** the infectiousness profile, rescaled.
-:::
-:::
-::: {.column width="58%"}
-```{r}
-#| fig-height: 4.6
-tau <- seq(0, 20, 0.1)
-df_b <- bind_rows(
-  tibble(tau, disease = "Acute (e.g. influenza)",
-         beta = dgamma(tau, shape = 2.5, rate = 1.5)),
-  tibble(tau, disease = "Sustained (e.g. HIV)",
-         beta = dexp(tau, rate = 0.25))
-) |>
-  group_by(disease) |>
-  mutate(beta = beta / max(beta)) |>
-  ungroup()
-
-ggplot(df_b, aes(tau, beta, colour = disease)) +
-  geom_line(linewidth = 1.7) +
-  scale_colour_manual(
-    values = c("Acute (e.g. influenza)" = "#d62728",
-               "Sustained (e.g. HIV)"   = "#9467bd")) +
-  scale_x_continuous(limits = c(0, 20), breaks = seq(0, 20, 4)) +
-  labs(x = "days since infection (τ)",
-       y = "relative infectiousness β(τ)",
-       colour = NULL,
-       title = "Different diseases, different β(τ) shapes") +
-  theme(legend.position = "bottom")
-```
-:::
-::::
-
 ## The generation interval
 
 :::: {.columns}
@@ -769,14 +721,12 @@ ggplot() +
         panel.grid.major.x = element_line(colour = "grey92"))
 ```
 
-## Pre-symptomatic transmission
+## When does transmission happen?
 
-$$\theta = \frac{\int_0^\infty \beta(\tau)\,[1 - F_{\rm inc}(\tau)]\,d\tau}{\int_0^\infty \beta(\tau)\,d\tau}$$
-
-the fraction of transmission occurring **before** symptom onset.
+For some diseases, the most infectious period is *before* the host shows symptoms.
 
 ```{r}
-#| fig-height: 3.8
+#| fig-height: 4.0
 tau <- seq(0, 14, 0.1)
 
 calc_theta <- function(tau, inc_s, inc_r, b_s, b_r)
@@ -789,15 +739,15 @@ df_theta <- bind_rows(
     presymp  = dgamma(tau, shape = 2.5, rate = 1.5) *
                (1 - pgamma(tau, shape = 4, rate = 2)),
     inc_mean = 2,
-    disease  = sprintf("Influenza  (θ = %.2f)",
-                       calc_theta(tau, 4, 2, 2.5, 1.5))),
+    disease  = sprintf("Influenza  (~%.0f%% pre-symptomatic)",
+                       100 * calc_theta(tau, 4, 2, 2.5, 1.5))),
   tibble(tau,
     beta     = dgamma(tau, shape = 7, rate = 1),
     presymp  = dgamma(tau, shape = 7, rate = 1) *
                (1 - pgamma(tau, shape = 5, rate = 1)),
     inc_mean = 5,
-    disease  = sprintf("SARS  (θ = %.2f)",
-                       calc_theta(tau, 5, 1, 7, 1)))
+    disease  = sprintf("SARS  (~%.0f%% pre-symptomatic)",
+                       100 * calc_theta(tau, 5, 1, 7, 1)))
 ) |>
   group_by(disease) |>
   mutate(beta = beta / max(beta), presymp = presymp / max(beta)) |>
@@ -813,19 +763,13 @@ ggplot(df_theta) +
              colour = "#1f77b4", linewidth = 1, linetype = "22") +
   facet_wrap(~disease, ncol = 2) +
   scale_x_continuous(breaks = seq(0, 14, 2)) +
-  labs(x = "days since infection (τ)",
-       y = "relative infectiousness β(τ)",
-       subtitle = "Red: pre-symptomatic.  Grey: post-symptomatic.  Blue dashed: mean symptom onset.")
+  labs(x = "days since infection",
+       y = "relative infectiousness",
+       subtitle = "Red: pre-symptomatic transmission.  Grey: post-symptomatic.  Blue dashed: mean symptom onset.")
 ```
 
 ::: {.fragment}
-High $\theta$: cases transmit before symptoms appear — isolation after onset arrives too late.
-
-Low $\theta$: most transmission after onset — case-finding and isolation can work.
-:::
-
-::: {.fragment}
-> This explains why SARS was containable in 2003 but influenza pandemics are not — and why surveillance built on symptom-onset dates systematically misses the most infectious moment.
+> SARS was containable in 2003; influenza pandemics are not. The difference is *when* transmission happens relative to symptoms — and why surveillance built on symptom-onset dates misses the most infectious moment.
 :::
 
 # The connection to survival analysis {background-color="#2ca02c" style="color:white;"}
