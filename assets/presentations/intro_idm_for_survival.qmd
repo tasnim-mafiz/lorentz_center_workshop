@@ -564,7 +564,13 @@ The transmission rate drops; the shape of $R_t$ over time reflects when interven
 
 ::::
 
+::: {.fragment}
+Both levers work by changing the pace of spread, and the pace of spread is set by the **generation interval**.
+:::
+
 ## The generation interval
+
+The **generation interval (GI)** is the time between infection of an infector and infection of their infectee.
 
 ```{r}
 #| fig-height: 3.8
@@ -642,7 +648,7 @@ $$i(t) = R_t \int_0^\infty i(t{-}\tau)\, w(\tau)\, d\tau$$
 :::
 
 ::: {.incremental}
-- $w(\tau)$: probability that a secondary infection occurs $\tau$ days after the primary
+- $w(\tau)$: probability density of the time from primary to secondary infection
 - Short $w(\tau)$ → rapid generations → harder to contain
 
 :::
@@ -788,6 +794,8 @@ ggplot() +
 
 ::: {.fragment}
 $$\text{SI} = \text{GI} + (\text{infectee incubation} - \text{infector incubation})$$
+
+SI and GI are similar on average, but differ for individual pairs — and SI can even be negative when the infectee develops symptoms before the infector.
 :::
 
 # The connection to survival analysis {background-color="#2ca02c" style="color:white;"}
@@ -819,6 +827,16 @@ $S(t)$ = fraction of the population still susceptible
 
 ::: {.fragment}
 Same equation. $S(t)$ is simultaneously a survival curve and the susceptible fraction.
+:::
+
+::: {.notes}
+The left column shows the standard SA setup. The hazard h(t) is the instantaneous rate of the event given that it has not yet occurred — the probability of the event in the next instant, conditional on survival to t. Integrating it gives the cumulative hazard H(t), and exponentiating gives S(t).
+
+The right column shows the SIR model. The force of infection λ(t) = β · I(t)/N is the instantaneous rate at which a susceptible individual becomes infected — exactly the hazard of infection. Integrating it and exponentiating gives S(t), the fraction still susceptible.
+
+These are the same mathematical object. A susceptible person in the SIR model is following a survival process with hazard λ(t). The only structural difference — which we covered earlier — is that λ(t) is endogenous: it rises and falls with the epidemic itself, whereas in a standard SA model the hazard is determined by fixed individual characteristics and external covariates.
+
+This is the deepest connection between the two fields. Everything else in this section builds on it.
 :::
 
 ## Real epidemics are messier
@@ -874,20 +892,37 @@ flowchart LR
   classDef v fill:#d4edda,stroke:#155724
 ```
 
-::: {.fragment}
-Each arrow is a transition rate. Each box is a state. Domain knowledge is encoded directly into the model structure.
-:::
 
 ## But bespoke models are harder
 
 The flexibility comes at a cost:
 
 ::: {.incremental}
-- **More parameters** — each transition rate needs to be estimated; many are correlated
-- **Latent states are unobserved** — E, H, V compartments are not directly measured; inference relies on imperfect surveillance data
-- **Identifiability problems** — with aggregate data, you often cannot distinguish between competing explanations (e.g. waning immunity vs susceptible depletion)
-- **Computational burden** — likelihood evaluation requires solving ODEs or simulating the IBM at every parameter value
-- **No standard software** — unlike Cox regression, there is no off-the-shelf tool; models must be coded from scratch
+- **More parameters**: each transition rate needs to be estimated; many are correlated
+- **Latent states are unobserved**: E, H, V compartments are not directly measured; inference relies on imperfect surveillance data
+- **Identifiability problems**: with aggregate data, you often cannot distinguish between competing explanations (e.g. waning immunity vs susceptible depletion)
+- **Computational burden**: likelihood evaluation requires solving ODEs or simulating the IBM at every parameter value
+- **No standard software**: no single tool covers the full modelling pipeline; models are typically coded from scratch
+:::
+
+## When compartmental models aren't enough: IBMs
+
+Some questions require more structure than any compartmental model can provide:
+
+::: {.incremental}
+- **Household transmission**: who infects whom within a household depends on who lives together, not on population averages
+- **Contact networks**: workplaces, schools, and communities create heterogeneous mixing that aggregate compartments erase
+- **Correlated individual histories**: compartmental models can stratify by age or vaccination status, but cannot track whether the same person was previously infected, then vaccinated, then re-infected, and how that sequence shapes their outcome
+:::
+
+::: {.fragment}
+**Individual-based models (IBMs)** simulate each person separately, with their own attributes and contact events. The epidemic emerges from millions of individual interactions rather than from differential equations.
+:::
+
+::: {.fragment}
+The case study uses **HERMES**, an IBM with household, school, workplace, and community transmission — which is why the output is a dataset of individual-level infection and event times rather than aggregate curves.
+
+This is also why SA tools apply directly: the data structure IBMs produce is exactly what SA is designed to analyse.
 :::
 
 ## This is where survival analysis comes in
