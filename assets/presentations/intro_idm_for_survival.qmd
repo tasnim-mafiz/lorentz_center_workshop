@@ -565,7 +565,7 @@ The transmission rate drops; the shape of $R_t$ over time reflects when interven
 ::::
 
 ::: {.fragment}
-Both levers work by changing the pace of spread, and the pace of spread is set by the **generation interval**.
+>Both levers work by changing the pace of spread, which is determined by the **generation interval**.
 :::
 
 ## The generation interval
@@ -758,12 +758,12 @@ ggplot() +
            label = c("infected", "symptoms"), colour = c(col_dim, col_sym),
            size = 4.2, hjust = 0.5) +
   annotate("segment", x = t_A, xend = s_A, y = 1.28, yend = 1.28,
-           colour = col_inc, linewidth = 0.9,
+           colour = col_dim, linewidth = 0.9,
            arrow = arrow(ends = "both", length = unit(0.12, "cm"))) +
   annotate("text", x = (t_A + s_A)/2, y = 1.44,
            label = "incubation", colour = col_dim, size = 3.8, hjust = 0.5) +
   annotate("segment", x = t_B, xend = s_B, y = 1.72, yend = 1.72,
-           colour = col_inc, linewidth = 0.9,
+           colour = col_dim, linewidth = 0.9,
            arrow = arrow(ends = "both", length = unit(0.12, "cm"))) +
   annotate("text", x = (t_B + s_B)/2, y = 1.56,
            label = "incubation", colour = col_dim, size = 3.8, hjust = 0.5) +
@@ -910,9 +910,9 @@ The flexibility comes at a cost:
 Some questions require more structure than any compartmental model can provide:
 
 ::: {.incremental}
-- **Household transmission**: who infects whom within a household depends on who lives together, not on population averages
-- **Contact networks**: workplaces, schools, and communities create heterogeneous mixing that aggregate compartments erase
-- **Correlated individual histories**: compartmental models can stratify by age or vaccination status, but cannot track whether the same person was previously infected, then vaccinated, then re-infected, and how that sequence shapes their outcome
+- **Household transmission**: who infects whom within a household depends on who lives together
+- **Contact networks**: workplaces, schools, and communities create heterogeneous mixing
+- **Individual exposure histories**: individuals may experience numerous exposures: previously infected, then vaccinated, then re-infected, and how that sequence shapes their outcome
 :::
 
 ::: {.fragment}
