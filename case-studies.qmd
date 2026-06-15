@@ -19,7 +19,7 @@ The complete individual-level dataset is not revealed until the end of the works
 
 ```{=html}
 <div class="doc-cards">
-  <a href="assets/Case_study_final.docx" class="doc-card" download>
+  <a href="assets/case_study/Case_study_final.docx" class="doc-card" download>
     <img src="assets/thumbnails/Case_study_final.png" alt="Case Study" onerror="this.src='assets/thumbnails/placeholder.svg'">
     <div class="doc-card-label">Case Study</div>
   </a>
