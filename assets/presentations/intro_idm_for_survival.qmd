@@ -566,27 +566,90 @@ The transmission rate drops; the shape of $R_t$ over time reflects when interven
 
 ## The generation interval
 
+```{r}
+#| fig-height: 3.8
+t_A <- 0;  inc_A <- 5;  s_A <- t_A + inc_A
+t_B <- 7;  inc_B <- 4;  s_B <- t_B + inc_B
+
+col_inf <- "#d62728"; col_sym <- "#ff7f0e"
+col_gi  <- "#9467bd"; col_si  <- "#1f77b4"; col_inc <- "#2ca02c"
+col_dim <- "grey82"
+
+ggplot() +
+  geom_segment(aes(x = -1, xend = 13, y = 1, yend = 1), colour = "grey75", linewidth = 1.5) +
+  geom_segment(aes(x = -1, xend = 13, y = 2, yend = 2), colour = "grey75", linewidth = 1.5) +
+  geom_point(aes(x = c(t_A, s_A), y = c(1, 1), colour = c("infected", "symptoms")),
+             size = 5, show.legend = FALSE) +
+  geom_point(aes(x = c(t_B, s_B), y = c(2, 2), colour = c("infected", "symptoms")),
+             size = 5, show.legend = FALSE) +
+  scale_colour_manual(values = c(infected = col_inf, symptoms = col_dim)) +
+  annotate("text", x = c(t_A, s_A), y = 0.72,
+           label = c("infected", "symptoms"), colour = c(col_inf, col_dim),
+           size = 4.2, hjust = 0.5) +
+  annotate("text", x = c(t_B, s_B), y = 2.28,
+           label = c("infected", "symptoms"), colour = c(col_inf, col_dim),
+           size = 4.2, hjust = 0.5) +
+  annotate("segment", x = t_A, xend = s_A, y = 1.28, yend = 1.28,
+           colour = col_dim, linewidth = 0.9,
+           arrow = arrow(ends = "both", length = unit(0.12, "cm"))) +
+  annotate("text", x = (t_A + s_A)/2, y = 1.44,
+           label = "incubation", colour = col_dim, size = 3.8, hjust = 0.5) +
+  annotate("segment", x = t_B, xend = s_B, y = 1.72, yend = 1.72,
+           colour = col_dim, linewidth = 0.9,
+           arrow = arrow(ends = "both", length = unit(0.12, "cm"))) +
+  annotate("text", x = (t_B + s_B)/2, y = 1.56,
+           label = "incubation", colour = col_dim, size = 3.8, hjust = 0.5) +
+  annotate("segment", x = t_A, xend = t_A, y = 1, yend = 0.38,
+           colour = col_gi, linewidth = 0.7, linetype = "dashed") +
+  annotate("segment", x = t_B, xend = t_B, y = 2, yend = 0.38,
+           colour = col_gi, linewidth = 0.7, linetype = "dashed") +
+  annotate("segment", x = t_A, xend = t_B, y = 0.38, yend = 0.38,
+           colour = col_gi, linewidth = 1.4,
+           arrow = arrow(ends = "both", length = unit(0.15, "cm"), type = "closed")) +
+  annotate("text", x = (t_A + t_B)/2, y = 0.20,
+           label = "Generation interval", colour = col_gi, size = 4.5, fontface = "bold") +
+  annotate("segment", x = s_A, xend = s_A, y = 1, yend = 2.62,
+           colour = col_dim, linewidth = 0.7, linetype = "dashed") +
+  annotate("segment", x = s_B, xend = s_B, y = 2, yend = 2.62,
+           colour = col_dim, linewidth = 0.7, linetype = "dashed") +
+  annotate("segment", x = s_A, xend = s_B, y = 2.62, yend = 2.62,
+           colour = col_dim, linewidth = 1.4,
+           arrow = arrow(ends = "both", length = unit(0.15, "cm"), type = "closed")) +
+  annotate("text", x = (s_A + s_B)/2, y = 2.80,
+           label = "Serial interval", colour = col_dim, size = 4.5, fontface = "bold") +
+  annotate("text", x = -1.2, y = c(1, 2),
+           label = c("Infector", "Infectee"),
+           hjust = 1, size = 5, fontface = "bold") +
+  scale_x_continuous(breaks = 0:13, limits = c(-3.5, 13.5)) +
+  scale_y_continuous(limits = c(0, 3.1)) +
+  labs(x = "days", y = NULL) +
+  theme(axis.text.y = element_blank(), axis.ticks.y = element_blank(),
+        panel.grid.major.y = element_blank(), panel.grid.minor = element_blank(),
+        panel.grid.major.x = element_line(colour = "grey92"))
+```
+
+## The generation interval
+
 :::: {.columns}
 ::: {.column width="42%"}
-The **generation interval (GI)** is the time between infection of an infector and infection of their infectee.
-
-The **renewal equation**: new cases at time $t$ are a weighted sum of all past incidence, with weights from $w(\tau)$, the GI distribution:
-
-$$i(t) = R_t \int_0^\infty i(t{-}\tau)\, w(\tau)\, d\tau$$
-
-::: {.incremental}
-- $w(\tau)$: time from infection of infector to infection of infectee — a survival distribution
-- Short $w(\tau)$ → rapid generations → harder to contain
-- Estimated from contact tracing data
-:::
+- Each infected person generates $R_t$ new cases on average. 
+- Cases appear with a delay determined by the generation interval $w(\tau)$.
 
 ::: {.fragment}
-Because infection times are rarely observed, we use the **serial interval** as a proxy.
+Summing contributions from all past cases gives the **renewal equation**:
+
+$$i(t) = R_t \int_0^\infty i(t{-}\tau)\, w(\tau)\, d\tau$$
+:::
+
+::: {.incremental}
+- $w(\tau)$: probability that a secondary infection occurs $\tau$ days after the primary
+- Short $w(\tau)$ → rapid generations → harder to contain
+
 :::
 :::
 ::: {.column width="58%"}
 ```{r}
-#| fig-height: 4.8
+#| fig-height: 4.0
 set.seed(42)
 days  <- 1:22
 cases <- c(1,2,3,5,8,13,20,28,34,38,36,30,24,18,12,8,6,4,3,2,2,1)
@@ -651,125 +714,80 @@ p_inc / p_rt + plot_layout(heights = c(3, 2))
 :::
 ::::
 
+::: {.notes}
+The figure shows a simulated epidemic with 22 days of incidence data.
+
+Top panel: daily case counts (bars) with the generation interval distribution w(τ) overlaid (purple curve, scaled to the bar heights). The red dashed line marks the current day t. The coloured bars are the cases that fall within the GI window — they are the ones that can plausibly have generated today's cases. The colour gradient (yellow → red) reflects how much each past day contributes: days near the peak of w(τ) contribute most.
+
+Bottom panel: Rt estimated from the renewal equation at each day. Rt starts well above 1 (epidemic growing), crosses 1 near day 18 (the red dot — the epidemic is at its peak), and falls below 1 as it declines.
+
+The key point: Rt is not observed directly. It is inferred by comparing today's incidence to the weighted sum of past incidence, where the weights come from w(τ). The shape of w(τ) — how quickly or slowly the GI distribution decays — determines how far back you need to look and how sensitive the Rt estimate is to recent case counts.
+:::
+
 ## Serial interval vs generation interval
 
+The **serial interval (SI)** is the time between symptom onset in an infector–infectee pair.
+
 ```{r}
-#| fig-height: 4.2
-# Example timeline: infector (A) and infectee (B)
-t_A <- 0;  inc_A <- 5;  s_A <- t_A + inc_A   # infected day 0, symptoms day 5
-t_B <- 7;  inc_B <- 4;  s_B <- t_B + inc_B   # infected day 7, symptoms day 11
-GI_val <- t_B - t_A   # 7
-SI_val <- s_B - s_A   # 6
+#| fig-height: 3.8
+t_A <- 0;  inc_A <- 5;  s_A <- t_A + inc_A
+t_B <- 7;  inc_B <- 4;  s_B <- t_B + inc_B
 
 col_inf <- "#d62728"; col_sym <- "#ff7f0e"
 col_gi  <- "#9467bd"; col_si  <- "#1f77b4"; col_inc <- "#2ca02c"
+col_dim <- "grey82"
 
 ggplot() +
-  # Timeline bars
   geom_segment(aes(x = -1, xend = 13, y = 1, yend = 1), colour = "grey75", linewidth = 1.5) +
   geom_segment(aes(x = -1, xend = 13, y = 2, yend = 2), colour = "grey75", linewidth = 1.5) +
-  # Event dots
   geom_point(aes(x = c(t_A, s_A), y = c(1, 1), colour = c("infected", "symptoms")),
              size = 5, show.legend = FALSE) +
   geom_point(aes(x = c(t_B, s_B), y = c(2, 2), colour = c("infected", "symptoms")),
              size = 5, show.legend = FALSE) +
-  scale_colour_manual(values = c(infected = col_inf, symptoms = col_sym)) +
-  # Event labels
+  scale_colour_manual(values = c(infected = col_dim, symptoms = col_sym)) +
   annotate("text", x = c(t_A, s_A), y = 0.72,
-           label = c("infected", "symptoms"), colour = c(col_inf, col_sym),
-           size = 3.8, hjust = 0.5) +
+           label = c("infected", "symptoms"), colour = c(col_dim, col_sym),
+           size = 4.2, hjust = 0.5) +
   annotate("text", x = c(t_B, s_B), y = 2.28,
-           label = c("infected", "symptoms"), colour = c(col_inf, col_sym),
-           size = 3.8, hjust = 0.5) +
-  # Incubation brackets
+           label = c("infected", "symptoms"), colour = c(col_dim, col_sym),
+           size = 4.2, hjust = 0.5) +
   annotate("segment", x = t_A, xend = s_A, y = 1.28, yend = 1.28,
            colour = col_inc, linewidth = 0.9,
            arrow = arrow(ends = "both", length = unit(0.12, "cm"))) +
-  annotate("text", x = (t_A + s_A)/2, y = 1.42,
-           label = sprintf("incubation (%d d)", inc_A),
-           colour = col_inc, size = 3.2, hjust = 0.5) +
+  annotate("text", x = (t_A + s_A)/2, y = 1.44,
+           label = "incubation", colour = col_dim, size = 3.8, hjust = 0.5) +
   annotate("segment", x = t_B, xend = s_B, y = 1.72, yend = 1.72,
            colour = col_inc, linewidth = 0.9,
            arrow = arrow(ends = "both", length = unit(0.12, "cm"))) +
-  annotate("text", x = (t_B + s_B)/2, y = 1.58,
-           label = sprintf("incubation (%d d)", inc_B),
-           colour = col_inc, size = 3.2, hjust = 0.5) +
-  # GI bracket
-  annotate("segment", x = t_A, xend = t_B, y = 0.40, yend = 0.40,
-           colour = col_gi, linewidth = 1.4,
+  annotate("text", x = (t_B + s_B)/2, y = 1.56,
+           label = "incubation", colour = col_dim, size = 3.8, hjust = 0.5) +
+  annotate("segment", x = t_A, xend = t_B, y = 0.38, yend = 0.38,
+           colour = col_dim, linewidth = 1.4,
            arrow = arrow(ends = "both", length = unit(0.15, "cm"), type = "closed")) +
-  annotate("text", x = (t_A + t_B)/2, y = 0.22,
-           label = sprintf("Generation interval = %d days", GI_val),
-           colour = col_gi, size = 4, fontface = "bold") +
-  # SI bracket
-  annotate("segment", x = s_A, xend = s_B, y = 2.60, yend = 2.60,
+  annotate("text", x = (t_A + t_B)/2, y = 0.20,
+           label = "Generation interval", colour = col_dim, size = 4.5, fontface = "bold") +
+  annotate("segment", x = s_A, xend = s_A, y = 1, yend = 2.62,
+           colour = col_si, linewidth = 0.7, linetype = "dashed") +
+  annotate("segment", x = s_B, xend = s_B, y = 2, yend = 2.62,
+           colour = col_si, linewidth = 0.7, linetype = "dashed") +
+  annotate("segment", x = s_A, xend = s_B, y = 2.62, yend = 2.62,
            colour = col_si, linewidth = 1.4,
            arrow = arrow(ends = "both", length = unit(0.15, "cm"), type = "closed")) +
-  annotate("text", x = (s_A + s_B)/2, y = 2.78,
-           label = sprintf("Serial interval = %d days", SI_val),
-           colour = col_si, size = 4, fontface = "bold") +
-  # Person labels
+  annotate("text", x = (s_A + s_B)/2, y = 2.80,
+           label = "Serial interval", colour = col_si, size = 4.5, fontface = "bold") +
   annotate("text", x = -1.2, y = c(1, 2),
            label = c("Infector", "Infectee"),
-           hjust = 1, size = 4.5, fontface = "bold") +
+           hjust = 1, size = 5, fontface = "bold") +
   scale_x_continuous(breaks = 0:13, limits = c(-3.5, 13.5)) +
   scale_y_continuous(limits = c(0, 3.1)) +
-  labs(x = "days", y = NULL,
-       subtitle = "SI = GI + (infectee incubation − infector incubation)  ·  SI can be shorter or longer than GI") +
+  labs(x = "days", y = NULL) +
   theme(axis.text.y = element_blank(), axis.ticks.y = element_blank(),
         panel.grid.major.y = element_blank(), panel.grid.minor = element_blank(),
         panel.grid.major.x = element_line(colour = "grey92"))
 ```
 
-## When does transmission happen?
-
-For some diseases, the most infectious period is *before* the host shows symptoms.
-
-```{r}
-#| fig-height: 4.0
-tau <- seq(0, 14, 0.1)
-
-calc_theta <- function(tau, inc_s, inc_r, b_s, b_r)
-  sum(dgamma(tau, b_s, b_r) * (1 - pgamma(tau, inc_s, inc_r))) /
-  sum(dgamma(tau, b_s, b_r))
-
-df_theta <- bind_rows(
-  tibble(tau,
-    beta     = dgamma(tau, shape = 2.5, rate = 1.5),
-    presymp  = dgamma(tau, shape = 2.5, rate = 1.5) *
-               (1 - pgamma(tau, shape = 4, rate = 2)),
-    inc_mean = 2,
-    disease  = sprintf("Influenza  (~%.0f%% pre-symptomatic)",
-                       100 * calc_theta(tau, 4, 2, 2.5, 1.5))),
-  tibble(tau,
-    beta     = dgamma(tau, shape = 7, rate = 1),
-    presymp  = dgamma(tau, shape = 7, rate = 1) *
-               (1 - pgamma(tau, shape = 5, rate = 1)),
-    inc_mean = 5,
-    disease  = sprintf("SARS  (~%.0f%% pre-symptomatic)",
-                       100 * calc_theta(tau, 5, 1, 7, 1)))
-) |>
-  group_by(disease) |>
-  mutate(beta = beta / max(beta), presymp = presymp / max(beta)) |>
-  ungroup()
-
-ggplot(df_theta) +
-  geom_ribbon(aes(tau, ymin = 0, ymax = presymp),
-              fill = "#d62728", alpha = 0.4) +
-  geom_ribbon(aes(tau, ymin = presymp, ymax = beta),
-              fill = "#555", alpha = 0.12) +
-  geom_line(aes(tau, beta), colour = "#d62728", linewidth = 1.5) +
-  geom_vline(aes(xintercept = inc_mean),
-             colour = "#1f77b4", linewidth = 1, linetype = "22") +
-  facet_wrap(~disease, ncol = 2) +
-  scale_x_continuous(breaks = seq(0, 14, 2)) +
-  labs(x = "days since infection",
-       y = "relative infectiousness",
-       subtitle = "Red: pre-symptomatic transmission.  Grey: post-symptomatic.  Blue dashed: mean symptom onset.")
-```
-
 ::: {.fragment}
-> SARS was containable in 2003; influenza pandemics are not. The difference is *when* transmission happens relative to symptoms — and why surveillance built on symptom-onset dates misses the most infectious moment.
+$$\text{SI} = \text{GI} + (\text{infectee incubation} - \text{infector incubation})$$
 :::
 
 # The connection to survival analysis {background-color="#2ca02c" style="color:white;"}
@@ -1005,6 +1023,10 @@ ggplot(df) +
 ```
 
 The incubation period $T = O - E$ is doubly interval-censored. EM, Bayesian augmentation, and multiple imputation all apply.
+
+::: {.fragment}
+Getting this right matters: for diseases where transmission peaks before symptoms, the most infectious moment has already passed by the time onset is observed.
+:::
 
 ## Underreporting and serology <span style="font-size:0.55em; background:#1f77b4; color:white; padding:3px 10px; border-radius:10px; margin-left:8px; font-weight:normal; vertical-align:middle;">Missing data</span>
 
