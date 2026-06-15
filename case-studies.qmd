@@ -15,16 +15,12 @@ The complete individual-level dataset is not revealed until the end of the works
 
 ---
 
-## Case Study Document
+## Case Study Documents
 
-```{=html}
-<div class="doc-cards">
-  <a href="assets/case_study/Case_study_final.docx" class="doc-card" download>
-    <img src="assets/thumbnails/Case_study_final.png" alt="Case Study" onerror="this.src='assets/thumbnails/placeholder.svg'">
-    <div class="doc-card-label">Case Study</div>
-  </a>
-</div>
-```
+| Document | Description | |
+|----------|-------------|--|
+| Introduction | Overview of the case study, background, and group questions | [Download](assets/case_study/Introduction_case_study.pdf){.btn .btn-sm .btn-outline-primary target="_blank"} |
+| Full case study | Complete case study document with datasets and instructions | [Download](assets/case_study/Case_study_final.docx){.btn .btn-sm .btn-outline-primary download=""} |
 
 ---
 
